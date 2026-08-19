@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <!-- Top face: blue (Planner — intelligence) -->
+    <linearGradient id="ft" x1="9" y1="19" x2="55" y2="19" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="50%" stop-color="#2563EB"/>
+      <stop offset="100%" stop-color="#3B82F6"/>
+    </linearGradient>
+    <!-- Left face: cyan (Coder — data) -->
+    <linearGradient id="fl" x1="9" y1="19" x2="32" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#22D3EE"/>
+      <stop offset="100%" stop-color="#0891B2"/>
+    </linearGradient>
+    <!-- Right face: orange (QA — action) -->
+    <linearGradient id="fr" x1="55" y1="19" x2="32" y2="58" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F97316"/>
+      <stop offset="100%" stop-color="#C2410C"/>
+    </linearGradient>
+    <!-- Subtle top highlight -->
+    <linearGradient id="ht" x1="32" y1="6" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="white" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="white" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Three isometric faces -->
+  <path d="M32 6 L55 19 L32 32 L9 19 Z" fill="url(#ft)"/>
+  <path d="M9 19 L32 32 L32 58 L9 45 Z" fill="url(#fl)"/>
+  <path d="M55 19 L55 45 L32 58 L32 32 Z" fill="url(#fr)"/>
+
+  <!-- Highlight overlay on top face -->
+  <path d="M32 6 L55 19 L32 32 L9 19 Z" fill="url(#ht)"/>
+
+  <!-- Edge highlights for depth -->
+  <path d="M32 6 L55 19 L32 32 L9 19 Z" stroke="white" stroke-width="0.5" stroke-opacity="0.1" fill="none"/>
+  <line x1="32" y1="32" x2="32" y2="58" stroke="white" stroke-width="0.5" stroke-opacity="0.08"/>
+</svg>

@@ -1,0 +1,54 @@
+name: Check assignment submission
+
+on:
+  pull_request:
+    paths:
+      - 'assignments/**'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Validate submission layout
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate changed paths
+        run: |
+          set -euo pipefail
+          base="${{ github.event.pull_request.base.sha }}"
+          head="${{ github.event.pull_request.head.sha }}"
+          files=$(git diff --name-only "$base" "$head")
+
+          echo "Changed files:"
+          echo "$files" | sed 's/^/  /'
+          echo
+
+          fail=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            case "$f" in
+              assignments/*)
+                # assignments/week-NN/<student-id>/<file>
+                if ! echo "$f" | grep -Eq '^assignments/week-[0-9]{2}/[0-9]{6,10}/.+'; then
+                  echo "::error file=$f::경로 형식이 맞지 않습니다. assignments/week-01/<학번>/<파일> 형태여야 합니다"
+                  fail=1
+                fi
+                ;;
+              *)
+                echo "::error file=$f::과제 PR은 assignments/ 아래만 변경해야 합니다. 강의 자료 수정은 별도 PR로 보내주세요"
+                fail=1
+                ;;
+            esac
+          done <<< "$files"
+
+          if [ "$fail" -ne 0 ]; then
+            echo
+            echo "폴더 이름은 학번만 씁니다. 이름은 PR 제목에 적어주세요."
+            exit 1
+          fi
+          echo "OK. 제출 형식이 올바릅니다."
