@@ -51,7 +51,7 @@ description: 언어모형과 자연어처리 (131107967A) 2026-2
 | 2 | 언어와 말뭉치, 텍스트 전처리와 단어 분포 |
 | 3 | 확률론적 언어모델, N-그램 모델 |
 | 4 | 숨겨진 마르코프 모델(HMM)과 시퀀스 태깅 |
-| 5 | 통계적 텍스트 분류, 나이브 베이즈와 문서 분류 |
+| 5 | 통계적 텍스트 분류와 문서 분류 |
 | 6 | 단어의 의미 표현, 분포적 통계와 임베딩 기초 |
 | 7 | 신경망 기반 단어 임베딩, Word2Vec |
 | 8 | 문장 임베딩과 텍스트 유사도 |
@@ -67,8 +67,34 @@ description: 언어모형과 자연어처리 (131107967A) 2026-2
 
 ## 교재
 
-- _Speech and Language Processing_ (3rd ed.) - Jurafsky & Martin (공개 초안)
-- _Natural Language Processing with Python_ - Bird et al.
+주교재
+
+- **_Speech and Language Processing_ 3판** - Jurafsky & Martin. **2026-01 완본**, 공개 PDF 무료
+  - 이 과목은 1~11장과 17장을 쓴다
+
+부교재
+
+- **Hugging Face Course 한국어판** - 무료. 한국어 번역은 0·1·2·3·5·8장까지만 있다
+- **위키독스 「딥 러닝을 이용한 자연어 처리 입문」** - 한국어. 대부분 무료이나 일부 심화는 유료다. **필수 구매 대상이 아니다**
+
+### 주차별 읽기 범위
+
+| 주 | 읽기 |
+|---|---|
+| 1 | ch1 Introduction |
+| 2 | ch2 Words and Tokens |
+| 3 | ch3 N-gram Language Models |
+| 4 | ch17.2 POS Tagging, ch17.4 HMM POS Tagging |
+| 5 | ch4 Logistic Regression |
+| 6~7 | ch5 Embeddings |
+| 8 | ch5 + ch11.1, ch11.3 |
+| 9 | ch8 Transformers |
+| 10 | ch7 Large Language Models, ch9 Masked Language Models |
+| 11 | ch7 |
+| 12 | ch7 + ch10.1 Instruction Tuning |
+| 14 | ch4.12, ch12.7 |
+
+13·15주차는 지정 읽기가 없다.
 
 ## 실습 환경
 
