@@ -1445,3 +1445,30 @@ body {
 .card:has(.card-link:hover) {
   border-color: var(--sl-card-border);
 }
+
+/* ─── Focus mode — hide both sidebars, center the content column ─────────── */
+
+.main-frame {
+  transition: padding-inline-start 0.25s ease;
+}
+
+@media (min-width: 50rem) {
+  :root.focus-mode {
+    --sl-content-inline-start: 0rem;
+  }
+
+  :root.focus-mode .sidebar-pane {
+    visibility: hidden;
+  }
+}
+
+@media (min-width: 72rem) {
+  :root.focus-mode .right-sidebar-container {
+    display: none;
+  }
+
+  :root.focus-mode .main-pane {
+    width: 100%;
+    --sl-content-margin-inline: auto;
+  }
+}
