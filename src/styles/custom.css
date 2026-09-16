@@ -1424,3 +1424,24 @@ body {
   .sdlc-panels { width: 100%; }
   .sdlc-commands { grid-template-columns: 1fr; }
 }
+
+/* ─── Clickable home cards ──────────────────────────────────────────────── */
+
+.card:has(.card-link) {
+  position: relative;
+}
+
+.card-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.card:has(.card-link:hover) {
+  border-color: var(--sl-card-border);
+}

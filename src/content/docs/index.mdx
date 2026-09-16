@@ -18,16 +18,16 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
 <CardGrid stagger>
   <Card title="주차별 강의" icon="open-book">
-    15주차 강의노트. 온라인 2시수와 대면 1시수로 나뉜다.
+    <a class="card-link" href="/weeks/week-01/">15주차 강의노트. 온라인 2시수와 대면 1시수로 나뉜다.</a>
   </Card>
   <Card title="실습 노트북" icon="laptop">
-    Colab에서 바로 열린다. 설치할 것이 없다.
+    <a class="card-link" href="/notebooks/">Colab에서 바로 열린다. 설치할 것이 없다.</a>
   </Card>
   <Card title="과제 제출" icon="github">
-    이 저장소에 PR로 제출한다. 방법은 과제 제출 문서에 있다.
+    <a class="card-link" href="/assignments/">이 저장소에 PR로 제출한다. 방법은 과제 제출 문서에 있다.</a>
   </Card>
   <Card title="온라인 강의" icon="star">
-    온라인 2시수는 AI Professor에서 진행한다.
+    <a class="card-link" href="https://aip.chu.ac.kr">온라인 2시수는 AI Professor에서 진행한다.</a>
   </Card>
 </CardGrid>
 
