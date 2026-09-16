@@ -17,7 +17,10 @@ export default defineConfig({
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/halla-ai/intronlp-2026' },
       ],
-      components: { ThemeSelect: './src/components/ThemeSelect.astro' },
+      components: {
+        Header: './src/components/Header.astro',
+        ThemeSelect: './src/components/ThemeSelect.astro',
+      },
       customCss: ['./src/styles/custom.css'],
       sidebar: [
         {
