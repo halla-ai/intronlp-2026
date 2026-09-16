@@ -21,10 +21,10 @@ TODO를 건드리지 않아도 노트북은 처음부터 끝까지 돌아간다.
 
 | 주 | 주제 | 노트북 |
 |---|---|---|
-| 1 | 자연어처리 소개와 언어모델의 개요 | 준비 중 |
-| 2 | 언어와 말뭉치, 텍스트 전처리와 단어 분포 | 준비 중 |
-| 3 | 확률론적 언어모델, N-그램 모델 | 준비 중 |
-| 4 | 숨겨진 마르코프 모델(HMM)과 시퀀스 태깅 | 준비 중 |
+| 1 | 자연어처리 소개와 언어모델의 개요 | [Colab](https://colab.research.google.com/github/halla-ai/intronlp-2026/blob/main/notebooks/week-01.ipynb) |
+| 2 | 언어와 말뭉치, 텍스트 전처리와 단어 분포 | [Colab](https://colab.research.google.com/github/halla-ai/intronlp-2026/blob/main/notebooks/week-02.ipynb) |
+| 3 | 확률론적 언어모델, N-그램 모델 | [Colab](https://colab.research.google.com/github/halla-ai/intronlp-2026/blob/main/notebooks/week-03.ipynb) |
+| 4 | 숨겨진 마르코프 모델(HMM)과 시퀀스 태깅 | [Colab](https://colab.research.google.com/github/halla-ai/intronlp-2026/blob/main/notebooks/week-04.ipynb) |
 | 5 | 통계적 텍스트 분류와 문서 분류 | 준비 중 |
 | 6 | 단어의 의미 표현, 분포적 통계와 임베딩 기초 | 준비 중 |
 | 7 | 신경망 기반 단어 임베딩, Word2Vec | 준비 중 |
