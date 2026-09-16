@@ -4,15 +4,15 @@ description: 자연어처리 소개와 언어모델의 개요
 week: 1
 ---
 
-import weekHero from '../../../assets/weeks/week-01/week-01-hero.png';
-import whyLanguageIsHard from '../../../assets/weeks/week-01/why-language-is-hard.png';
-import nlpAroundUs from '../../../assets/weeks/week-01/nlp-around-us.png';
+import weekHero from '../../../assets/weeks/week-01/week-01-hero.webp';
+import whyLanguageIsHard from '../../../assets/weeks/week-01/why-language-is-hard.webp';
+import nlpAroundUs from '../../../assets/weeks/week-01/nlp-around-us.webp';
 import courseMap from '../../../assets/weeks/week-01/course-map.png';
 import nextWordTwoTables from '../../../assets/weeks/week-01/next-word-two-tables.png';
 import generationLoop from '../../../assets/weeks/week-01/generation-loop.png';
-import samplingRoulette from '../../../assets/weeks/week-01/sampling-roulette.png';
+import samplingRoulette from '../../../assets/weeks/week-01/sampling-roulette.webp';
 import threeTriesCompare from '../../../assets/weeks/week-01/three-tries-compare.png';
-import plausibleNotTrue from '../../../assets/weeks/week-01/plausible-not-true.png';
+import plausibleNotTrue from '../../../assets/weeks/week-01/plausible-not-true.webp';
 import approachHistory from '../../../assets/weeks/week-01/approach-history.png';
 import q1ProblemFrame from '../../../assets/weeks/week-01/q1-problem-frame.png';
 import colabFirstRun from '../../../assets/weeks/week-01/colab-first-run.png';
@@ -52,7 +52,7 @@ import colabFirstRun from '../../../assets/weeks/week-01/colab-first-run.png';
 
 사람은 이 셋을 헷갈리지 않는다. 그런데 세 문장의 "배"는 **글자가 완전히 같다.** 컴퓨터가 보는 것도 똑같은 글자다. 뜻을 갈라 주는 것은 글자 자체가 아니라 앞뒤에 놓인 다른 단어들이다. "굶었더니", "타고", "물이 많고"가 없으면 어느 뜻인지 알 방법이 없다.
 
-<img src={whyLanguageIsHard.src} alt="가운데 놓인 똑같은 카드 한 장에서 선 세 개가 갈라져 배를 감싸 쥔 아이, 바다 위에 뜬 작은 배, 접시에 놓인 노란 배 세 장면으로 이어지는 그림. 세 장면의 크기가 같다" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
+<img src={whyLanguageIsHard.src} alt="가운데 놓인 똑같은 카드 한 장에서 선 세 개가 갈라져 배를 감싸 쥔 아이, 바다 위에 뜬 작은 배, 접시에 놓인 노란 배 세 장면으로 이어지는 그림. 세 장면의 크기가 같다" loading="lazy" decoding="async" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
 
 한 가지 더 있다. 사람은 말하지 않은 것까지 알아듣는다.
 
@@ -108,7 +108,7 @@ B의 대답에는 "가지 말자"라는 말이 한 마디도 없다. 그런데 A
 
 자연어처리는 연구실 안의 이야기가 아니다. 오늘 하루에도 여러 번 썼을 것이다.
 
-<img src={nlpAroundUs.src} alt="번역, 자막, 맞춤법 교정, 검색, 편지 분류, 후기 분류 여섯 장면을 두 줄로 늘어놓은 그림. 감귤과 현무암 같은 제주 소재가 장면 사이에 작게 들어가 있다" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
+<img src={nlpAroundUs.src} alt="번역, 자막, 맞춤법 교정, 검색, 편지 분류, 후기 분류 여섯 장면을 두 줄로 늘어놓은 그림. 감귤과 현무암 같은 제주 소재가 장면 사이에 작게 들어가 있다" loading="lazy" decoding="async" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
 
 | 하는 일 | 넣는 것 | 나오는 것 | 제주에서 보는 모습 |
 |---|---|---|---|
@@ -143,7 +143,7 @@ B의 대답에는 "가지 말자"라는 말이 한 마디도 없다. 그런데 A
 
 이번 학기에 어떤 순서로 쌓아 올리는지 미리 봐 두자. 지금 서 있는 자리는 맨 왼쪽이다.
 
-<img src={courseMap.src} alt="개관 1주차에서 시작해 언어 현상과 확률 2에서 5주차, 의미 표현 6에서 8주차, 신경망과 사전학습 9에서 10주차, 대규모 언어모델 11에서 12주차, 응용과 사회 13에서 15주차로 이어지는 흐름도. 맨 앞 개관 칸에 지금 여기 표시가 붙어 있다" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
+<img src={courseMap.src} alt="개관 1주차에서 시작해 언어 현상과 확률 2에서 5주차, 의미 표현 6에서 8주차, 신경망과 사전학습 9에서 10주차, 대규모 언어모델 11에서 12주차, 응용과 사회 13에서 15주차로 이어지는 흐름도. 맨 앞 개관 칸에 지금 여기 표시가 붙어 있다" loading="lazy" decoding="async" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
 
 오른쪽으로 갈수록 앞에서 배운 것을 재료로 쓴다. 2주차에서 말을 자르는 법을 배우고, 3주차에서 잘라 놓은 것들을 세어 확률을 만들고, 6주차에서 뜻을 숫자로 옮기는 식이다. 그래서 한 주를 건너뛰면 그다음이 어려워진다.
 
@@ -203,7 +203,7 @@ B의 대답에는 "가지 말자"라는 말이 한 마디도 없다. 그런데 A
 | 전복죽 | 0.12 | 100번 중 12번 |
 | 그 밖의 말 전부 | 0.21 | 100번 중 21번 |
 
-<img src={nextWordTwoTables.src} alt="왼쪽은 혼저 다음에 올 말의 확률이 옵서예 0.90에 몰려 있는 가로 막대그래프, 오른쪽은 제주에서 먹고 싶은 것은 다음에 올 말의 확률이 고기국수 0.25, 흑돼지 0.24, 갈치조림 0.18, 전복죽 0.12, 그 밖 0.21로 넓게 퍼져 있는 가로 막대그래프. 두 그래프의 눈금은 0에서 1로 같고 숫자는 설명용 예시다" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
+<img src={nextWordTwoTables.src} alt="왼쪽은 혼저 다음에 올 말의 확률이 옵서예 0.90에 몰려 있는 가로 막대그래프, 오른쪽은 제주에서 먹고 싶은 것은 다음에 올 말의 확률이 고기국수 0.25, 흑돼지 0.24, 갈치조림 0.18, 전복죽 0.12, 그 밖 0.21로 넓게 퍼져 있는 가로 막대그래프. 두 그래프의 눈금은 0에서 1로 같고 숫자는 설명용 예시다" loading="lazy" decoding="async" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
 
 두 표 모두 더하면 1이 된다. 다른 것은 **모양**이다.
 
@@ -224,7 +224,7 @@ B의 대답에는 "가지 말자"라는 말이 한 마디도 없다. 그런데 A
 | 4 | 제주에서 먹고 싶은 것은 | 고기국수 |
 | 5 | 제주에서 먹고 싶은 것은 고기국수 | 이다 |
 
-<img src={generationLoop.src} alt="지금까지의 글에서 다음 단어 확률표를 만들고, 한 단어를 뽑아 뒤에 붙인 다음 다시 처음으로 돌아가는 고리 모양 흐름도. 옆으로는 끝맺음 표시가 나오면 완성된 문장으로 빠져나가는 갈래가 있다" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
+<img src={generationLoop.src} alt="지금까지의 글에서 다음 단어 확률표를 만들고, 한 단어를 뽑아 뒤에 붙인 다음 다시 처음으로 돌아가는 고리 모양 흐름도. 옆으로는 끝맺음 표시가 나오면 완성된 문장으로 빠져나가는 갈래가 있다" loading="lazy" decoding="async" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
 
 여기서 중요한 것은 4단계다. 만약 고기국수 대신 흑돼지가 뽑혔다면, 5단계 이후의 문장은 통째로 달라졌을 것이다. **한 번의 뽑기가 뒤의 모든 뽑기를 바꾼다.** 문장 생성은 새로운 재주가 아니라 같은 고르기의 반복이다.
 
@@ -244,7 +244,7 @@ B의 대답에는 "가지 말자"라는 말이 한 마디도 없다. 그런데 A
 
 - 고기국수 25칸, 흑돼지 24칸, 갈치조림 18칸, 전복죽 12칸, 나머지 21칸
 
-<img src={samplingRoulette.src} alt="조각 크기가 서로 다르게 나뉜 큰 원판과 위쪽 바늘, 원판을 돌리려는 학생을 그린 그림. 옆에는 같은 원판을 작게 그린 것 세 개가 나란히 있고 바늘이 각각 다른 조각에 멈춰 있다" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
+<img src={samplingRoulette.src} alt="조각 크기가 서로 다르게 나뉜 큰 원판과 위쪽 바늘, 원판을 돌리려는 학생을 그린 그림. 옆에는 같은 원판을 작게 그린 것 세 개가 나란히 있고 바늘이 각각 다른 조각에 멈춰 있다" loading="lazy" decoding="async" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
 
 눈을 감고 원판을 돌려 한 칸을 찍는 것이 **뽑기**다. 세 번 돌리면 세 번 다 다른 칸이 나올 수 있다. 칸이 넓은 고기국수가 자주 나오겠지만 매번 나오지는 않는다.
 
@@ -269,7 +269,7 @@ B의 대답에는 "가지 말자"라는 말이 한 마디도 없다. 그런데 A
 
 같은 원리로, 질문에 따라 답이 흔들리는 정도가 다르다.
 
-<img src={threeTriesCompare.src} alt="윗줄은 사실형 질문을 세 번 넣어 세 번 모두 한라산이 나온 기록, 아랫줄은 추천형 질문을 세 번 넣어 박물관, 카페 거리, 동굴로 매번 다른 답이 나온 기록을 격자로 보여 주는 그림. 오른쪽에 각각 표가 뾰족해서 같다, 표가 평평해서 다르다는 설명이 붙어 있다. 설명용 예시 기록이다" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
+<img src={threeTriesCompare.src} alt="윗줄은 사실형 질문을 세 번 넣어 세 번 모두 한라산이 나온 기록, 아랫줄은 추천형 질문을 세 번 넣어 박물관, 카페 거리, 동굴로 매번 다른 답이 나온 기록을 격자로 보여 주는 그림. 오른쪽에 각각 표가 뾰족해서 같다, 표가 평평해서 다르다는 설명이 붙어 있다. 설명용 예시 기록이다" loading="lazy" decoding="async" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
 
 - "제주도에서 가장 높은 산은?" 처럼 **사실을 묻는 질문**은 확률이 한 곳에 몰린다. 한라산이라는 말이 압도적이어서 몇 번을 물어도 같은 답이 나온다
 - "비 오는 날 갈 만한 곳은?" 처럼 **추천이나 창작을 묻는 질문**은 확률이 넓게 퍼진다. 그럴듯한 후보가 여럿이라 물을 때마다 달라진다
@@ -290,7 +290,7 @@ B의 대답에는 "가지 말자"라는 말이 한 마디도 없다. 그런데 A
 
 여기서 한 가지 조심할 것이 있다. 확률이 높다는 것은 **그동안 그런 말끼리 자주 붙어 다녔다**는 뜻이지 **그 말이 참이다**라는 뜻이 아니다.
 
-<img src={plausibleNotTrue.src} alt="오름 산책로에 똑같이 잘 만들어진 나무 표지판 두 개가 서 있고, 왼쪽은 실제 초록 언덕을 가리키지만 오른쪽은 아무것도 없는 안개 쪽을 가리키는 그림. 지도를 든 학생이 두 표지판을 번갈아 보고 있다" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
+<img src={plausibleNotTrue.src} alt="오름 산책로에 똑같이 잘 만들어진 나무 표지판 두 개가 서 있고, 왼쪽은 실제 초록 언덕을 가리키지만 오른쪽은 아무것도 없는 안개 쪽을 가리키는 그림. 지도를 든 학생이 두 표지판을 번갈아 보고 있다" loading="lazy" decoding="async" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
 
 두 표지판은 똑같이 잘 만들어졌다. 생김새만 봐서는 어느 쪽이 실제 길을 가리키는지 알 수 없다. 언어모델의 답도 이와 같다. 실제로 없는 오름 이름이나 없는 버스 번호도 아주 매끄러운 문장으로 나올 수 있다. 문장이 자연스럽다는 것과 내용이 사실이라는 것은 서로 다른 문제다.
 
@@ -300,7 +300,7 @@ B의 대답에는 "가지 말자"라는 말이 한 마디도 없다. 그런데 A
 
 컴퓨터가 말을 다루는 방식은 한 번에 지금 모습이 된 것이 아니다. 앞 방식의 약점을 고치면서 옮겨 왔다.
 
-<img src={approachHistory.src} alt="규칙 적어 두기, 많이 세어 보기, 신경망으로 배우기, 크게 키우기 네 단계가 차례로 이어지고, 각 단계 아래에 경우의 수가 끝이 없다, 안 나온 말은 모른다, 왜 그런지 설명이 어렵다, 틀린 말도 그럴듯하다는 남은 문제가 점선으로 연결된 흐름도" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
+<img src={approachHistory.src} alt="규칙 적어 두기, 많이 세어 보기, 신경망으로 배우기, 크게 키우기 네 단계가 차례로 이어지고, 각 단계 아래에 경우의 수가 끝이 없다, 안 나온 말은 모른다, 왜 그런지 설명이 어렵다, 틀린 말도 그럴듯하다는 남은 문제가 점선으로 연결된 흐름도" loading="lazy" decoding="async" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
 
 - **규칙 적어 두기.** 사람이 문법 규칙을 손으로 적었다. 남은 문제는 경우의 수가 끝이 없다는 것이다
 - **많이 세어 보기.** 글을 잔뜩 모아 어떤 말 뒤에 어떤 말이 자주 오는지 세었다. 남은 문제는 세어 본 적 없는 말은 다룰 수 없다는 것이다
@@ -414,7 +414,7 @@ B의 대답에는 "가지 말자"라는 말이 한 마디도 없다. 그런데 A
 
 셋째 조건을 채우는 요령은 **작게 세는 것**이다. 전부 검사할 필요가 없다. 20개만 사람이 직접 판단해 두고 그것과 맞춰 보면 된다. 20개 중 몇 개를 맞혔는지가 곧 점수가 되고, 다음에 고친 뒤 다시 세면 나아졌는지 알 수 있다.
 
-<img src={q1ProblemFrame.src} alt="겪는 불편, 넣을 것, 원하는 결과, 잘 됐는지 확인하는 법 네 칸이 차례로 이어지는 틀과, 그 아래 후기에서 불만 글을 골라내는 예시로 네 칸을 채운 줄. 확인 방법이 없으면 앞으로 돌아간다는 되돌림 화살표가 있다" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
+<img src={q1ProblemFrame.src} alt="겪는 불편, 넣을 것, 원하는 결과, 잘 됐는지 확인하는 법 네 칸이 차례로 이어지는 틀과, 그 아래 후기에서 불만 글을 골라내는 예시로 네 칸을 채운 줄. 확인 방법이 없으면 앞으로 돌아간다는 되돌림 화살표가 있다" loading="lazy" decoding="async" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
 
 □ 완성된 예시 세 개
 
@@ -468,7 +468,7 @@ B의 대답에는 "가지 말자"라는 말이 한 마디도 없다. 그런데 A
 
 처음 실행할 때는 준비하는 데 몇 초에서 몇십 초가 걸린다. 화면 어딘가에 연결 중이라는 표시가 뜨는데, 기다리면 된다. 두 번째부터는 빠르다.
 
-<img src={colabFirstRun.src} alt="브라우저 접속, 새 노트 만들기, 코드 셀 입력, 실행, 출력 확인으로 이어지는 흐름도. 실행 단계에서 따옴표 짝이 안 맞다, 위 셀을 안 돌렸다, 연결이 끊겼다 세 갈래가 갈라져 나갔다가 다시 실행 단계로 돌아온다" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
+<img src={colabFirstRun.src} alt="브라우저 접속, 새 노트 만들기, 코드 셀 입력, 실행, 출력 확인으로 이어지는 흐름도. 실행 단계에서 따옴표 짝이 안 맞다, 위 셀을 안 돌렸다, 연결이 끊겼다 세 갈래가 갈라져 나갔다가 다시 실행 단계로 돌아온다" loading="lazy" decoding="async" style="max-width: 100%; border-radius: 8px; margin: 1rem 0;" />
 
 □ 첫 코드 다섯 줄
 
