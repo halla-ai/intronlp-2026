@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>동시발생 행렬 한 칸은 이렇게 정해진다</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--accent:#2563eb;--accent-soft:rgba(37,99,235,.10);--hi:#16a34a;--hi-soft:rgba(22,163,74,.12)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--accent:#22d3ee;--accent-soft:rgba(34,211,238,.12);--hi:#4ade80;--hi-soft:rgba(74,222,128,.13)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.pairrow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.pbtn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:3px 12px;font-size:12.5px;cursor:pointer;font-family:inherit;transition:background .2s,border-color .2s}
+.pbtn:hover{border-color:var(--muted)}
+.pbtn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.sent{border:1px solid var(--border);border-radius:10px;background:var(--card);padding:10px;margin-bottom:8px}
+.sent h4{margin:0 0 6px;font-size:12px;color:var(--muted);font-weight:400}
+.toks{display:flex;gap:5px;flex-wrap:wrap}
+.tok{border:1px solid var(--border);border-radius:6px;padding:3px 9px;font-size:12.5px;background:var(--bg);animation:pop .35s ease both}
+.tok.focus{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+.tok.win{background:var(--hi-soft);border-color:var(--hi);color:var(--hi)}
+.tok.dim{opacity:.4}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+.calc{display:flex;gap:10px;align-items:stretch}
+.calc .res{border:1px solid var(--border);border-radius:10px;background:var(--card);padding:8px 12px;text-align:center;min-width:90px;display:flex;flex-direction:column;justify-content:center}
+.calc .res .v{font-size:20px;font-weight:700;color:var(--accent)}
+.calc .res .l{font-size:11px;color:var(--muted)}
+.calc .why{flex:1;border:1px dashed var(--border);border-radius:10px;padding:8px 10px;font-size:12.5px;color:var(--muted);display:flex;flex-direction:column;justify-content:center;min-height:52px}
+.calc .why b{color:var(--text)}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">단어 쌍을 눌러 보세요. 창 2 안에 두 단어가 함께 들어온 문장을 찾아 행렬 칸에 1을 더한다</p>
+<div class="pairrow" id="pairs"></div>
+<div id="sents"></div>
+<div class="calc">
+  <div class="res"><span class="v" id="val">1</span><span class="l" id="lab">행렬 칸 값</span></div>
+  <div class="why" id="why"></div>
+</div>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+</script>
+<script>
+// co-occurrence counts computed by notebooks/week-06.ipynb (scripts/gen_week06.py), window 2
+var DATA={
+ "바다가~푸르다":{
+  hit:{s:"제주 바다가 아주 푸르다",f:"바다가",n:["아주","푸르다"]},
+  miss:["가을 하늘이 아주 푸르다"],
+  why:'"제주 바다가 아주 푸르다"에서 바다가의 창 2 안에 푸르다가 들어온다. 행렬의 [바다가, 푸르다] 칸이 1이 된다. <b>바다가와 하늘이가 둘 다 푸르다와 함께 다니는 것이</b> 두 단어 벡터가 비슷해지는 이유다'
+ },
+ "먹었다~고기국수를":{
+  hit:{s:"고기국수를 뜨겁게 먹었다",f:"먹었다",n:["고기국수를","뜨겁게"]},
+  miss:["귤을 깨끗이 씻어 먹었다"],
+  why:'"고기국수를 뜨겁게 먹었다"에서 먹었다의 창 2 안에 고기국수를이 들어온다. 칸 [먹었다, 고기국수를] = 1. <b>갈치조림을도 같은 자리를 가지고 있어</b> 두 음식 벡터가 겹친다'
+ },
+ "귤을~겨울":{
+  hit:null,
+  miss:["겨울 귤은 달고 과즙이 많다"],
+  why:'귤을은 겨울 귤이 아니라 <b>귤밭에서·따왔다·깨끗이·씻어</b>와만 함께 다닌다. 귤은은 겨울과 함께 다닌다. 같은 과일을 가리키지만 행렬에서 서로 다른 칸에 기록된다. <b>이것이 귤을~귤은 유사도 0.00의 뿌리다</b>'
+ }
+};
+var pairsEl=document.getElementById('pairs'),sentsEl=document.getElementById('sents'),valEl=document.getElementById('val'),labEl=document.getElementById('lab'),whyEl=document.getElementById('why');
+var keys=Object.keys(DATA),cur=keys[0];
+keys.forEach(function(k){
+ var b=document.createElement('button');b.type='button';b.className='pbtn';b.textContent=k.replace('~',' ~ ');b.dataset.k=k;
+ b.onclick=function(){cur=k;render()};
+ pairsEl.appendChild(b);
+});
+function tokEl(w,cls,delay){
+ return '<span class="tok '+cls+'" style="animation-delay:'+delay+'ms">'+w+'</span>';
+}
+function render(){
+ document.querySelectorAll('.pbtn').forEach(function(b){b.classList.toggle('on',b.dataset.k===cur)});
+ var d=DATA[cur];
+ sentsEl.innerHTML='';
+ var delay=0;
+ if(d.hit){
+  var ws=d.hit.s.split(' ');
+  var fi=ws.indexOf(d.hit.f);
+  var lo=fi-2,hi=fi+2;
+  var toks=ws.map(function(w,j){
+   var cls=j===fi?'focus':(Math.abs(j-fi)<=2?'win':'dim');
+   return tokEl(w,cls,delay+=70);
+  }).join('');
+  sentsEl.innerHTML='<div class="sent"><h4>함께 들어온 문장 (창 2)</h4><div class="toks">'+toks+'</div></div>';
+ }
+ d.miss.forEach(function(s){
+  var toks=s.split(' ').map(function(w){return tokEl(w,'dim',delay+=70)}).join('');
+  sentsEl.innerHTML+='<div class="sent"><h4>함께 들어오지 않은 문장</h4><div class="toks">'+toks+'</div></div>';
+ });
+ valEl.textContent=d.hit?'1':'0';
+ whyEl.innerHTML=d.why;
+}
+render();
+</script>
+</body>
+</html>

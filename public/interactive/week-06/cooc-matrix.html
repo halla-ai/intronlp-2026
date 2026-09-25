@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>단어의 행이 벡터가 되기</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--accent:#2563eb;--accent-soft:rgba(37,99,235,.10);--warm:#b45309;--warm-soft:rgba(180,83,9,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--accent:#22d3ee;--accent-soft:rgba(34,211,238,.12);--warm:#fbbf24;--warm-soft:rgba(251,191,36,.12)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.words{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.wbtn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:3px 12px;font-size:12.5px;cursor:pointer;font-family:inherit;transition:background .2s,border-color .2s}
+.wbtn:hover{border-color:var(--muted)}
+.wbtn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.row{border:1px solid var(--border);border-radius:10px;background:var(--card);padding:8px 10px;margin-bottom:8px}
+.row .who{font-size:12.5px;margin:0 0 6px;display:flex;align-items:center;gap:8px}
+.row .who b{font-size:13.5px}
+.row .who .vec{color:var(--muted);font-size:11.5px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--border);border-radius:999px;padding:2px 10px;font-size:12px;background:var(--bg);animation:pop .3s ease both}
+.chip span{color:var(--muted);font-size:11px;margin-left:2px}
+.chip.shared{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:600}
+.chip.shared span{color:var(--accent)}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+.cmp{min-height:52px;margin:8px 0 0;padding:8px 10px;border:1px dashed var(--border);border-radius:10px;font-size:12.5px;color:var(--muted)}
+.cmp b{color:var(--accent);font-size:14px}
+.cmp .big{font-size:18px;font-weight:700;color:var(--accent);margin-right:6px}
+.foot{margin:8px 0 0;font-size:11.5px;color:var(--muted)}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">단어를 눌러 보세요. 동시발생 행렬에서 그 단어의 행이 위로 나온다. 두 단어를 차례로 누르면 두 행을 비교한다</p>
+<div class="words" id="words"></div>
+<div id="rows"></div>
+<div class="cmp" id="cmp">두 단어를 차례로 눌러 두 행을 비교해 보세요</div>
+<p class="foot">말뭉치는 제주 이야기 문장 13개, 창 2. 행렬은 42 x 42 = 1764칸이지만 0이 아닌 칸은 120개(6.8%)다</p>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+
+// rows of the co-occurrence matrix (non-zero cells only), computed by notebooks/week-06.ipynb (scripts/gen_week06.py), window 2, corpus of 13 Jeju sentences
+var V={
+ "귤을":{ "귤밭에서":1,"깨끗이":1,"따왔다":1,"씻어":1 },
+ "귤은":{ "겨울":1,"과즙이":1,"달고":1 },
+ "감귤":{ "상자를":1,"포장해":1 },
+ "바다가":{ "더":1,"맑다":1,"성산":1,"아주":1,"우도":1,"잔잔하다":1,"제주":1,"푸르다":1 },
+ "하늘이":{ "가을":1,"아주":1,"푸르다":1 },
+ "하늘에":{ "겨울":1,"별이":1,"잔뜩":1 },
+ "먹었다":{ "갈치조림을":1,"고기국수를":1,"깨끗이":1,"뜨겁게":1,"뜨끈하게":1,"씻어":1 },
+ "고기국수를":{ "뜨겁게":1,"먹었다":1 },
+ "갈치조림을":{ "뜨끈하게":1,"먹었다":1 }
+};
+var N=42;
+var picked=[];
+var wordsEl=document.getElementById('words'),rowsEl=document.getElementById('rows'),cmpEl=document.getElementById('cmp');
+Object.keys(V).forEach(function(w){
+ var b=document.createElement('button');b.type='button';b.className='wbtn';b.textContent=w;b.dataset.w=w;
+ b.onclick=function(){pick(w)};
+ wordsEl.appendChild(b);
+});
+function cos(a,b){
+ var dot=0,na=0,nb=0;
+ for(var k in a){na+=a[k]*a[k];if(b[k])dot+=a[k]*b[k]}
+ for(var k in b)nb+=b[k]*b[k];
+ return (na&&nb)?dot/Math.sqrt(na*nb):0;
+}
+function shared(a,b){var s=[];for(var k in a)if(b[k])s.push(k);return s}
+function pick(w){
+ var i=picked.indexOf(w);
+ if(i>-1){picked.splice(i,1)}
+ else{picked.push(w);if(picked.length>2)picked.shift()}
+ render();
+}
+function render(){
+ document.querySelectorAll('.wbtn').forEach(function(b){b.classList.toggle('on',picked.indexOf(b.dataset.w)>-1)});
+ rowsEl.innerHTML='';
+ picked.forEach(function(w,idx){
+  var v=V[w],n=Object.keys(v).length;
+  var other=picked[1-idx]?V[picked[1-idx]]:null;
+  var sh=other?shared(v,other):[];
+  var d=document.createElement('div');d.className='row';
+  var chips=Object.keys(v).map(function(k){
+   var isSh=sh.indexOf(k)>-1;
+   return '<span class="chip'+(isSh?' shared':'')+'" style="animation-delay:'+(idx*90)+'ms">'+k+'<span>x'+v[k]+'</span></span>';
+  }).join('');
+  d.innerHTML='<p class="who"><b>'+w+'</b><span class="vec">의 행 (0이 아닌 칸 '+n+'개, 나머지 '+(N-n)+'칸은 0)</span></p><div class="chips">'+chips+'</div>';
+  rowsEl.appendChild(d);
+ });
+ if(picked.length===2){
+  var a=V[picked[0]],b=V[picked[1]],sh=shared(a,b);
+  var c=cos(a,b);
+  cmpEl.innerHTML='<span class="big">'+c.toFixed(2)+'</span>코사인 유사도 ('+picked[0]+' ~ '+picked[1]+') &nbsp; 공유하는 이웃: '+(sh.length?sh.join(', '):'없다. 유사도 0.00의 이유다');
+ }else{
+  cmpEl.textContent='두 단어를 차례로 눌러 두 행을 비교해 보세요';
+ }
+}
+</script>
+</body>
+</html>

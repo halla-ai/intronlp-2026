@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>가방의 한계를 임베딩이 줄인다</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--accent:#2563eb;--accent-soft:rgba(37,99,235,.10);--ok:#16a34a;--ok-soft:rgba(22,163,74,.10);--err:#dc2626;--err-soft:rgba(220,38,38,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--accent:#22d3ee;--accent-soft:rgba(34,211,238,.12);--ok:#4ade80;--ok-soft:rgba(74,222,128,.12);--err:#f87171;--err-soft:rgba(248,113,113,.13)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:10px}
+.seg button{border:none;background:none;color:var(--muted);padding:6px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+.seg button.on{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.sentence{border:1px solid var(--border);border-radius:10px;background:var(--card);padding:10px;margin-bottom:10px}
+.sentence h4{margin:0 0 8px;font-size:12px;color:var(--muted);font-weight:400}
+.toks{display:flex;gap:5px;flex-wrap:wrap}
+.tok{border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12.5px;background:var(--bg)}
+.tok .st{display:block;font-size:10.5px;color:var(--muted);margin-top:2px}
+.tok.known{background:var(--ok-soft);border-color:var(--ok)}
+.tok.known .st{color:var(--ok)}
+.tok.unknown{background:var(--err-soft);border-color:var(--err)}
+.tok.unknown .st{color:var(--err)}
+.verdict{display:flex;gap:10px;align-items:stretch}
+.verdict .box{flex:1;border:1px solid var(--border);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;justify-content:center}
+.verdict .v{font-size:17px;font-weight:700}
+.verdict .l{font-size:11px;color:var(--muted)}
+.verdict .pos{color:var(--ok)}
+.verdict .neg{color:var(--err)}
+.note{margin:10px 0 0;padding:8px 10px;border:1px dashed var(--border);border-radius:10px;font-size:12.5px;color:var(--muted);min-height:52px}
+.note b{color:var(--accent)}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">토글을 바꿔 보세요. 같은 문장에서 무엇이 보이고 무엇이 보이지 않는지가 달라진다</p>
+<div class="seg">
+  <button id="bBag" class="on" type="button">5주차: 단어 가방</button>
+  <button id="bEmb" type="button">6주차: 단어 벡터</button>
+</div>
+<div class="sentence">
+  <h4 id="cap1"></h4>
+  <div class="toks" id="toks"></div>
+</div>
+<div class="verdict" id="verdict"></div>
+<p class="note" id="note"></p>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+
+// 5주차: unseen words get nothing (week-05 notebook, gen_week05.py). 6주차: cosine similarities from week-06 corpus (gen_week06.py)
+var M={
+ bag:{
+  cap:'예쁘고 감성적인 숙소였다 (5주차 노트북의 새 문장)',
+  toks:[["예쁘고","가방에 없다"],["감성적인","가방에 없다"],["숙소였다","가방에 없다"]],
+  verdict:[["판정","부정","neg"],["긍정 확률","0.49",""]],
+  note:'학습 자료에 없던 단어라 <b>점수가 존재하지 않고 판단에 아무것도 더하지 못한다.</b> 기본 점수만 남아 부정으로 판정했다. 단어는 각자 따로 놀고, 처음 보는 단어는 0이다'
+ },
+ emb:{
+  cap:'예쁜 숙소였다 - 새 단어가 나와도',
+  toks:[["예쁜","좋았다와 가까움"],["숙소","객실과 가까움"],["였다","어미"]],
+  verdict:[["판정","긍정 쪽","pos"],["근거","이웃 단어의 점수",""]],
+  note:'단어를 벡터로 바꾸면 <b>처음 보는 단어도 이미 본 단어와 가까운 자리에 놓인다.</b> 예쁜이 좋았다 근처에 있으면 좋았다의 근거를 빌려 쓴다. 이번 주에 만드는 동시발생 행렬이 이 자리를 잡는 첫 단계다. <b>단어의 자리는 개념 그림이다. 이번 주 말뭉치의 측정값이 아니다</b>'
+ }
+};
+function setMode(m){
+ var d=M[m];
+ document.getElementById('bBag').classList.toggle('on',m==='bag');
+ document.getElementById('bEmb').classList.toggle('on',m==='emb');
+ document.getElementById('cap1').textContent=d.cap;
+ document.getElementById('toks').innerHTML=d.toks.map(function(t){
+  var cls=t[1].indexOf('없다')>-1||t[1]==='어미'?'unknown':'known';
+  return '<span class="tok '+cls+'">'+t[0]+'<span class="st">'+t[1]+'</span></span>';
+ }).join('');
+ document.getElementById('verdict').innerHTML=d.verdict.map(function(v){
+  return '<div class="box"><span class="v '+v[2]+'">'+v[1]+'</span><span class="l">'+v[0]+'</span></div>';
+ }).join('');
+ document.getElementById('note').innerHTML=d.note;
+}
+document.getElementById('bBag').onclick=function(){setMode('bag')};
+document.getElementById('bEmb').onclick=function(){setMode('emb')};
+setMode('bag');
+</script>
+</body>
+</html>
