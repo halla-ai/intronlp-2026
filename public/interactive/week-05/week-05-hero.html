@@ -93,7 +93,7 @@ function sort(i,b){
   var list=el(pos?'posList':'negList');
   var it=document.createElement('div');it.className='item';it.textContent=REV[i][0];list.appendChild(it);
   el(pos?'posCount':'negCount').textContent=String(list.children.length);
-  if(list.children.length===REV.length)el('done').textContent='글 전체를 두 바구니 중 하나로 나눴다. 이번 주에는 이 판단을 기계가 하도록 만든다';
+  if(el('posList').children.length+el('negList').children.length===REV.length)el('done').textContent='글 전체를 두 바구니 중 하나로 나눴다. 이번 주에는 이 판단을 기계가 하도록 만든다';
  },650);
 }
 el('reset').onclick=init;

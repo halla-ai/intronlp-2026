@@ -29,8 +29,8 @@ body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2
 <script>
 (function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
 </script>
-<p class="cap">문장을 누르면 단어가 가방으로 들어간다. 누를 때마다 다른 문장</p>
-<button type="button" class="sentence" id="sentence" aria-label="다음 문장으로 바꾸기"></button>
+<p class="cap" id="cap">문장을 누르면 단어가 가방으로 들어간다. 누를 때마다 다른 문장</p>
+<button type="button" class="sentence" id="sentence" aria-describedby="cap"></button>
 <div class="bag">
   <h3>단어 가방 (순서 버림)</h3>
   <div class="slots" id="slots"></div>
