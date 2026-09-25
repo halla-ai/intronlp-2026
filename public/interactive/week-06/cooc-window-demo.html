@@ -86,7 +86,6 @@ function render(){
  if(d.hit){
   var ws=d.hit.s.split(' ');
   var fi=ws.indexOf(d.hit.f);
-  var lo=fi-2,hi=fi+2;
   var toks=ws.map(function(w,j){
    var cls=j===fi?'focus':(Math.abs(j-fi)<=2?'win':'dim');
    return tokEl(w,cls,delay+=70);
