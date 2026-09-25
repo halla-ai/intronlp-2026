@@ -15,10 +15,10 @@ import FocusToggle from './FocusToggle.astro';
 import ThemeSelect from './ThemeSelect.astro';
 
 /**
- * Render the `Search` component if Pagefind is enabled or the default search component has been overridden.
+ * Render the `Search` component if Pagefind is enabled. Search is imported directly above,
+ * so a future Search override in astro.config.mjs must also be imported here (as ThemeSelect is).
  */
-const shouldRenderSearch =
-	config.pagefind || config.components.Search !== '@astrojs/starlight/components/Search.astro';
+const shouldRenderSearch = config.pagefind;
 ---
 
 <div class="header">

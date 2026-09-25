@@ -14,21 +14,19 @@ NB_PATH = ROOT / "notebooks" / "week-05.ipynb"
 
 # review corpus (examples) - positive 5 / negative 5
 POS = [
-    ("바다가 보이는 객실이 정말 좋았다", 1),
-    ("조식이 맛있고 직원들이 친절했다", 1),
-    ("숙소가 깨끗하고 뷰가 아주 좋았다", 1),
-    ("위치가 좋고 객실이 넓었다", 1),
-    ("가격 대비 만족스러운 숙박이었다", 1),
+    "바다가 보이는 객실이 정말 좋았다",
+    "조식이 맛있고 직원들이 친절했다",
+    "숙소가 깨끗하고 뷰가 아주 좋았다",
+    "위치가 좋고 객실이 넓었다",
+    "가격 대비 만족스러운 숙박이었다",
 ]
 NEG = [
-    ("방에서 냄새가 나서 힘들었다", 0),
-    ("직원이 불친절하고 방이 더러웠다", 0),
-    ("소음이 심해서 잠을 못 잤다", 0),
-    ("에어컨이 고장 나서 불편했다", 0),
-    ("사진과 다르고 좁고 낡았다", 0),
+    "방에서 냄새가 나서 힘들었다",
+    "직원이 불친절하고 방이 더러웠다",
+    "소음이 심해서 잠을 못 잤다",
+    "에어컨이 고장 나서 불편했다",
+    "사진과 다르고 좁고 낡았다",
 ]
-CORPUS = POS + NEG
-
 TODO_DEFAULT = "객실이 넓고 조식이 맛있었다"
 
 md = lambda t: {"cell_type": "markdown", "metadata": {}, "source": t}
@@ -68,8 +66,8 @@ cells = [
     md("### 1-1. 긍정 5건, 부정 5건\n"
        "\n"
        "긍정 리뷰 다섯 문장과 부정 리뷰 다섯 문장을 나란히 놓아 봅니다."),
-    code("positive = " + json.dumps([s for s, _ in POS], ensure_ascii=False, indent=4).replace("\n]", "    ]") + "\n"
-         "negative = " + json.dumps([s for s, _ in NEG], ensure_ascii=False, indent=4).replace("\n]", "    ]") + "\n"
+    code("positive = " + json.dumps(POS, ensure_ascii=False, indent=4).replace("\n]", "    ]") + "\n"
+         "negative = " + json.dumps(NEG, ensure_ascii=False, indent=4).replace("\n]", "    ]") + "\n"
          "\n"
          "print(\"긍정 리뷰\", len(positive), \"건\")\n"
          "for s in positive:\n"
