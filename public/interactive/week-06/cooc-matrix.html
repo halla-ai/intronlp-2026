@@ -36,7 +36,7 @@ body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2
 <script>
 (function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
 </script>
-<p class="cap">단어를 눌러 보세요. 동시발생 행렬에서 그 단어의 행이 위로 나온다. 두 단어를 차례로 누르면 두 행을 비교한다</p>
+<p class="cap">단어를 눌러 보세요. 동시발생 행렬에서 그 단어의 행(0이 아닌 칸만)이 나온다. 두 단어를 고르면 두 행을 비교해 코사인 유사도를 보여 준다</p>
 <div class="words" id="words"></div>
 <div id="rows"></div>
 <div class="cmp" id="cmp">두 단어를 차례로 눌러 두 행을 비교해 보세요</div>
@@ -57,10 +57,12 @@ var V={
  "하늘에":{ "겨울":1,"별이":1,"잔뜩":1 },
  "먹었다":{ "갈치조림을":1,"고기국수를":1,"깨끗이":1,"뜨겁게":1,"뜨끈하게":1,"씻어":1 },
  "고기국수를":{ "뜨겁게":1,"먹었다":1 },
- "갈치조림을":{ "뜨끈하게":1,"먹었다":1 }
+ "갈치조림을":{ "뜨끈하게":1,"먹었다":1 },
+ "우도":{ "바다가":1,"더":1 },
+ "맑다":{ "바다가":1,"더":1 }
 };
 var N=42;
-var picked=[];
+var picked=['귤을','귤은'];
 var wordsEl=document.getElementById('words'),rowsEl=document.getElementById('rows'),cmpEl=document.getElementById('cmp');
 Object.keys(V).forEach(function(w){
  var b=document.createElement('button');b.type='button';b.className='wbtn';b.textContent=w;b.dataset.w=w;
@@ -103,6 +105,7 @@ function render(){
   cmpEl.textContent='두 단어를 차례로 눌러 두 행을 비교해 보세요';
  }
 }
+render();
 </script>
 </body>
 </html>

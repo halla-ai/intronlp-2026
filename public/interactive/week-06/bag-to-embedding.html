@@ -55,7 +55,7 @@ addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme
 try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
 parent.postMessage({type:'figure-ready'},'*');
 
-// 5주차: unseen words get nothing (week-05 notebook, gen_week05.py). 6주차: cosine similarities from week-06 corpus (gen_week06.py)
+// 5주차: unseen words get nothing (week-05 notebook, gen_week05.py). 6주차: conceptual picture only, not measured on the week-06 corpus
 var M={
  bag:{
   cap:'예쁘고 감성적인 숙소였다 (5주차 노트북의 새 문장)',

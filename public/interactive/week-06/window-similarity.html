@@ -43,6 +43,7 @@ td.zero{background:var(--err-soft)}
 <tr><th style="text-align:left">고기국수를 ~ 갈치조림을</th><td id="p1a"></td><td id="p1b"></td><td id="p1c"></td></tr>
 <tr><th style="text-align:left">바다가 ~ 하늘이</th><td id="p2a"></td><td id="p2b"></td><td id="p2c"></td></tr>
 <tr><th style="text-align:left">귤을 ~ 귤은</th><td id="p3a"></td><td id="p3b"></td><td id="p3c"></td></tr>
+<tr><th style="text-align:left">귤은 ~ 하늘에</th><td id="p4a"></td><td id="p4b"></td><td id="p4c"></td></tr>
 </table>
 <p class="note" id="note"></p>
 <script>
@@ -55,14 +56,15 @@ parent.postMessage({type:'figure-ready'},'*');
 var S={
  "p1":{w1:'0.00',w2:'0.50',w3:'0.50'},
  "p2":{w1:'0.29',w2:'0.41',w3:'0.41'},
- "p3":{w1:'0.00',w2:'0.00',w3:'0.00'}
+ "p3":{w1:'0.00',w2:'0.00',w3:'0.00'},
+ "p4":{w1:'0.50',w2:'0.33',w3:'0.25'}
 };
 var sl=document.getElementById('w'),wv=document.getElementById('wv');
 function render(){
  var w=parseInt(sl.value);
  wv.textContent='창 '+w+'칸';
  ['h1','h2','h3'].forEach(function(id,i){document.getElementById(id).textContent='창 '+(i+1)+(i+1===w?' (지금)':'')});
- ['1','2','3'].forEach(function(n){
+ ['1','2','3','4'].forEach(function(n){
   var key='p'+n;
   ['a','b','c'].forEach(function(sub,i){
    var cell=document.getElementById(key+sub);
@@ -73,9 +75,9 @@ function render(){
   });
  });
  var notes={
-  1:'창 1에서는 고기국수를과 갈치조림을의 이웃이 각각 뜨겁게, 뜨끈하게뿐이라 <b>유사도가 0.00</b>이다. 바로 옆 한 칸만 보면 두 음식이 만날 기회가 없다',
-  2:'창 2부터 <b>먹었다</b>가 두 음식의 공유 이웃으로 들어와 유사도가 0.50으로 올라간다. 바다가~하늘이도 아주·푸르다가 겹치며 0.41까지 오른다',
-  3:'귤을~귤은은 창을 3칸으로 넓혀도 0.00이다. <b>겹치는 이웃이 생기지 않는 것은 창의 문제가 아니라 말뭉치의 문제다.</b> 같은 과일을 가리키는 두 단어가 서로 다른 문장에서만 살고 있기 때문이다'
+  1:'창 1에서는 고기국수를과 갈치조림을의 이웃이 각각 뜨겁게, 뜨끈하게뿐이라 <b>유사도가 0.00</b>이다. 반대로 귤은~하늘에는 둘 다 바로 옆에 겨울이 있어 0.50으로 가장 높다',
+  2:'창 2부터 <b>먹었다</b>가 두 음식의 공유 이웃으로 들어와 유사도가 0.50으로 올라간다. 바다가~하늘이도 푸르다가 더해져 0.41이 된다. 그런데 귤은~하늘에는 0.33으로 <b>내려간다.</b> 겹치지 않는 이웃이 새로 늘었기 때문이다',
+  3:'귤을~귤은은 창을 3칸으로 넓혀도 0.00이다. <b>겹치는 이웃이 생기지 않는 것은 창의 문제가 아니라 말뭉치의 문제다.</b> 귤은~하늘에는 0.25까지 더 내려간다. <b>창을 넓힌다고 유사도가 늘 오르는 것은 아니다</b>'
  };
  document.getElementById('note').innerHTML=notes[w];
 }
