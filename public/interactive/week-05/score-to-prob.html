@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>점수 합을 확률로 읽기</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--pos:#16a34a;--pos-soft:rgba(22,163,74,.12);--neg:#dc2626;--neg-soft:rgba(220,38,38,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--pos:#4ade80;--pos-soft:rgba(74,222,128,.14);--neg:#f87171;--neg-soft:rgba(248,113,113,.13)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 10px}
+.sl{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sl label{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.sl input{flex:1;accent-color:var(--pos)}
+.val{font-size:13px;min-width:130px}
+.p{color:var(--pos)}.n{color:var(--neg)}
+.bar{position:relative;height:30px;border:1px solid var(--border);border-radius:8px;background:var(--card);overflow:hidden}
+.fill{position:absolute;top:0;bottom:0;left:0;transition:width .3s,background .3s}
+.th{position:absolute;top:-4px;bottom:-4px;left:50%;width:2px;background:var(--text);opacity:.55}
+.thlabel{position:absolute;left:50%;transform:translateX(-50%);top:-18px;font-size:10.5px;color:var(--muted)}
+.scale{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px}
+.row{display:flex;justify-content:space-between;font-size:13px;margin-top:12px;min-height:20px}
+.note{margin:8px 0 0;color:var(--muted);font-size:12px;min-height:17px}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">슬라이더를 움직여 보세요. 점수 합이 0과 1 사이의 긍정 확률로 바뀐다</p>
+<div class="sl">
+  <label for="score">점수 합</label>
+  <input type="range" id="score" min="-5" max="5" step="0.01" value="0.8">
+  <span class="val" id="scoreVal"></span>
+</div>
+<div class="bar"><div class="thlabel">0.5</div><div class="th"></div><div class="fill" id="fill"></div></div>
+<div class="scale"><span>0 (부정)</span><span>0.5</span><span>1 (긍정)</span></div>
+<p class="row" id="row"></p>
+<p class="note">합계 0이 확률 0.5다. 합계가 커질수록 1에, 작아질수록 0에 다가가지만 <b>끝까지 닿지는 않는다</b></p>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+
+var sl=document.getElementById('score'),sv=document.getElementById('scoreVal'),fill=document.getElementById('fill'),row=document.getElementById('row');
+function sig(z){return 1/(1+Math.exp(-z))}
+function render(){
+ var z=parseFloat(sl.value);
+ var p=sig(z);
+ sv.innerHTML=(z>0?'+':'')+z.toFixed(2);
+ sv.className=z>0?'p':'n';
+ fill.style.width=(p*100)+'%';
+ fill.style.background=p>=0.5?'var(--pos-soft)':'var(--neg-soft)';
+ row.innerHTML='긍정 확률 = <b class="'+(p>=0.5?'p':'n')+'">'+p.toFixed(2)+'</b><span class="'+(p>=0.5?'p':'n')+'">'+(p>=0.5?'판정: 긍정':'판정: 부정')+'</span>';
+}
+sl.addEventListener('input',render);
+render();
+</script>
+</body>
+</html>

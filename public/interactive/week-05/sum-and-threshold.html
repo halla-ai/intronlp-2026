@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>점수 합과 문턱</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--pos:#16a34a;--pos-soft:rgba(22,163,74,.12);--neg:#dc2626;--neg-soft:rgba(220,38,38,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--pos:#4ade80;--pos-soft:rgba(74,222,128,.14);--neg:#f87171;--neg-soft:rgba(248,113,113,.13)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.in{display:block;width:100%;font:inherit;font-size:14px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);margin-bottom:6px}
+.ex{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.ex button{font:inherit;font-size:12px;padding:2px 9px;border:1px solid var(--border);border-radius:999px;background:transparent;color:var(--muted);cursor:pointer}
+.ex button:hover{color:var(--text);border-color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;min-height:46px;margin-bottom:22px}
+.chip{border:1px solid var(--border);background:var(--card);border-radius:8px;padding:3px 9px;text-align:center;font-size:14px}
+.chip small{display:block;font-size:11px}
+.chip.base{color:var(--muted)}
+.chip.un{border-style:dashed;opacity:.6}
+.chip.un small{color:var(--muted)}
+.p{color:var(--pos)}.n{color:var(--neg)}
+.bar{position:relative;height:22px;border:1px solid var(--border);border-radius:999px;background:var(--card)}
+.fill{position:absolute;top:0;bottom:0;transition:left .3s,width .3s,background .3s}
+.fill.p{background:var(--pos-soft)}.fill.n{background:var(--neg-soft)}
+.th{position:absolute;top:-4px;bottom:-4px;left:50%;width:2px;background:var(--text);opacity:.55}
+.thlabel{position:absolute;left:50%;transform:translateX(-50%);top:-19px;font-size:10.5px;color:var(--muted)}
+.scale{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);margin-top:2px}
+.verdict{text-align:center;font-size:14px;margin:8px 0 0;min-height:22px}
+.verdict b{font-size:16px}
+.note{margin:4px 0 0;text-align:center;color:var(--muted);font-size:11.5px}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">문장을 고쳐 쓰거나 예시를 눌러 보세요. 노트북과 같은 리뷰 열 건으로 학습한 점수로 계산한다</p>
+<input class="in" id="in" type="text" aria-label="리뷰 문장">
+<div class="ex" id="ex"></div>
+<div class="chips" id="chips"></div>
+<div class="bar"><div class="thlabel">문턱 0</div><div class="fill" id="fill"></div><div class="th"></div></div>
+<div class="scale"><span>부정 쪽</span><span>긍정 쪽</span></div>
+<p class="verdict" id="verdict"></p>
+<p class="note">점수는 소수 둘째 자리로 반올림했다. 가방에 없는 단어는 점선으로 표시되고 합계에 들어가지 않는다</p>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+
+// notebooks/week-05.ipynb 1-3 model weights (scripts/gen_week05.py), rounded to 2 decimals
+var BASE=-0.06;
+var W={'가격':.27,'객실이':.44,'고장':-.23,'깨끗하고':.22,'나서':-.46,'낡았다':-.25,'냄새가':-.23,'넓었다':.25,'다르고':-.25,'대비':.27,'더러웠다':-.25,'만족스러운':.27,'맛있고':.27,'못':-.23,'바다가':.20,'방에서':-.23,'방이':-.25,'보이는':.20,'불친절하고':-.25,'불편했다':-.23,'뷰가':.22,'사진과':-.25,'소음이':-.23,'숙박이었다':.27,'숙소가':.22,'심해서':-.23,'아주':.22,'에어컨이':-.23,'위치가':.25,'잠을':-.23,'잤다':-.23,'정말':.20,'조식이':.27,'좁고':-.25,'좋고':.25,'좋았다':.42,'직원들이':.27,'직원이':-.25,'친절했다':.27,'힘들었다':-.23};
+var EX=['객실이 좋았다','직원이 친절했다','직원들이 불친절했다','좋았다 좋았다 좋았다','예쁘고 감성적인 숙소였다'];
+var inp=document.getElementById('in'),chips=document.getElementById('chips'),fill=document.getElementById('fill'),verdict=document.getElementById('verdict');
+function fmt(x){return (x>0?'+':x<0?'-':'')+Math.abs(x).toFixed(2)}
+function render(){
+ var toks=inp.value.toLowerCase().match(/[\p{L}\p{M}\p{N}_]+/gu)||[];
+ var s=BASE,html='<span class="chip base">기본 점수<small>'+fmt(BASE)+'</small></span>';
+ toks.forEach(function(t){
+  if(Object.prototype.hasOwnProperty.call(W,t)){
+   s+=W[t];
+   html+='<span class="chip">'+t+'<small class="'+(W[t]>0?'p':'n')+'">'+fmt(W[t])+'</small></span>';
+  }else{
+   html+='<span class="chip un">'+t+'<small>가방에 없음</small></span>';
+  }
+ });
+ s=Math.round(s*100)/100;
+ chips.innerHTML=html;
+ var pct=50+Math.max(-1,Math.min(1,s/1.5))*50;
+ fill.className='fill '+(s>=0?'p':'n');
+ fill.style.left=Math.min(pct,50)+'%';
+ fill.style.width=Math.abs(pct-50)+'%';
+ var p=1/(1+Math.exp(-s)),pos=s>=0;
+ verdict.innerHTML='합계 <b class="'+(pos?'p':'n')+'">'+fmt(s)+'</b> · 문턱 0 '+(pos?'이상':'미만')+' → <b class="'+(pos?'p':'n')+'">'+(pos?'긍정':'부정')+'</b> <span style="color:var(--muted)">(긍정 확률 '+p.toFixed(2)+')</span>';
+}
+EX.forEach(function(e){
+ var b=document.createElement('button');b.type='button';b.textContent=e;
+ b.onclick=function(){inp.value=e;render()};
+ document.getElementById('ex').appendChild(b);
+});
+inp.value=new URLSearchParams(location.search).get('s')||EX[0];
+inp.addEventListener('input',render);
+render();
+</script>
+</body>
+</html>
