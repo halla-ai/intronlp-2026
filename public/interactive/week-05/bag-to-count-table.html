@@ -30,7 +30,7 @@ td.one{font-weight:700}
 </script>
 <p class="cap">한 줄이 리뷰 한 건, 한 칸이 단어 하나다. 리뷰 번호는 노트북 1-2의 표와 같다. 단어 이름을 누르면 그 단어가 나온 칸이 밝아진다</p>
 <table id="t"></table>
-<p class="note" id="note">분류기가 보는 것은 <b>이 표의 숫자</b>뿐이다. 문장 원문은 보지 않는다</p>
+<p class="note" id="note" aria-live="polite">분류기가 보는 것은 <b>이 표의 숫자</b>뿐이다. 문장 원문은 보지 않는다</p>
 <script>
 var fromParent=false;
 addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
@@ -41,7 +41,7 @@ var WORDS=['객실이','좋았다','직원들이','직원이','더러웠다'];
 // four of the notebook's training reviews, numbered as in notebook cell 1-2
 var REVIEWS=[[1,'바다가 보이는 객실이 정말 좋았다'],[2,'조식이 맛있고 직원들이 친절했다'],[4,'위치가 좋고 객실이 넓었다'],[7,'직원이 불친절하고 방이 더러웠다']];
 var t=document.getElementById('t'),note=document.getElementById('note'),base=note.innerHTML;
-var html='<tr><th>리뷰</th>'+WORDS.map(function(w,j){return '<th data-c="'+j+'"><button type="button">'+w+'</button></th>'}).join('')+'</tr>';
+var html='<tr><th>리뷰</th>'+WORDS.map(function(w,j){return '<th data-c="'+j+'"><button type="button" aria-pressed="false">'+w+'</button></th>'}).join('')+'</tr>';
 REVIEWS.forEach(function(r){
  var toks=r[1].split(' ');
  html+='<tr><td>리뷰'+r[0]+'<small>'+r[1]+'</small></td>'+WORDS.map(function(w,j){
@@ -54,6 +54,7 @@ var cur=-1;
 t.querySelectorAll('th[data-c]').forEach(function(th){
  th.querySelector('button').onclick=function(){
   var j=+th.getAttribute('data-c');cur=cur===j?-1:j;
+  t.querySelectorAll('th button').forEach(function(x,k){x.setAttribute('aria-pressed',String(k===cur))});
   t.querySelectorAll('[data-c]').forEach(function(c){c.classList.toggle('hl',+c.getAttribute('data-c')===cur&&(c.tagName==='TH'||c.textContent!=='0'))});
   if(cur<0){note.innerHTML=base;return}
   var hits=REVIEWS.filter(function(r){return r[1].split(' ').indexOf(WORDS[cur])>=0}).map(function(r){return '리뷰'+r[0]});

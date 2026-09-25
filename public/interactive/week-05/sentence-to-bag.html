@@ -49,8 +49,8 @@ var S=[
 ];
 var idx=0,gen=0;
 var sent=document.getElementById('sentence'),slots=document.getElementById('slots'),note=document.getElementById('note');
-function show(){
- var s=S[idx%S.length],g=++gen;
+function show(k){
+ var s=S[k%S.length],g=++gen;
  sent.innerHTML=s.split(' ').map(function(w){return '<span class="word">'+w+'</span>'}).join(' ');
  slots.innerHTML='';
  note.innerHTML='순서는 가방에 담기지 않는다. 가방에는 <b>어떤 단어가 몇 번 나왔는지</b>만 남는다';
@@ -64,13 +64,13 @@ function show(){
   },300+j*220);
  });
 }
-function wordFly(s){
+function wordFly(k){
  sent.querySelectorAll('.word').forEach(function(w,j){
   setTimeout(function(){w.classList.add('fly')},j*90);
  });
- setTimeout(show,420);
+ setTimeout(function(){show(k)},420); // k is fixed per click, so fast clicks never skip a sentence
 }
-sent.onclick=function(){idx++;wordFly(S[idx%S.length])};
-show();</script>
+sent.onclick=function(){wordFly(++idx)};
+show(0);</script>
 </body>
 </html>
