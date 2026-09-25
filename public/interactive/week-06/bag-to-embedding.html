@@ -64,10 +64,10 @@ var M={
   note:'학습 자료에 없던 단어라 <b>점수가 존재하지 않고 판단에 아무것도 더하지 못한다.</b> 기본 점수만 남아 부정으로 판정했다. 단어는 각자 따로 놀고, 처음 보는 단어는 0이다'
  },
  emb:{
-  cap:'예쁜 숙소였다 - 새 단어가 나와도',
-  toks:[["예쁜","좋았다와 가까움"],["숙소","객실과 가까움"],["였다","어미"]],
-  verdict:[["판정","긍정 쪽","pos"],["근거","이웃 단어의 점수",""]],
-  note:'단어를 벡터로 바꾸면 <b>처음 보는 단어도 이미 본 단어와 가까운 자리에 놓인다.</b> 예쁜이 좋았다 근처에 있으면 좋았다의 근거를 빌려 쓴다. 이번 주에 만드는 동시발생 행렬이 이 자리를 잡는 첫 단계다. <b>단어의 자리는 개념 그림이다. 이번 주 말뭉치의 측정값이 아니다</b>'
+  cap:'예쁘고 감성적인 숙소였다 (같은 문장, 단어를 벡터로 둔 경우)',
+  toks:[["예쁘고","좋았다와 가까움"],["감성적인","칭찬하는 말과 가까움"],["숙소였다","객실과 가까움"]],
+  verdict:[["판정","긍정 쪽","pos"],["근거","가까운 단어의 점수",""]],
+  note:'단어를 벡터로 바꾸면 <b>처음 보는 단어도 이미 본 단어와 가까운 자리에 놓인다.</b> 예쁘고가 좋았다 근처에 있으면 좋았다의 근거를 빌려 쓴다. 이번 주에 만드는 동시발생 행렬이 이 자리를 잡는 첫 단계다. <b>단어의 자리는 개념 그림이다. 이번 주 말뭉치의 측정값이 아니다</b>'
  }
 };
 function setMode(m){
@@ -76,7 +76,7 @@ function setMode(m){
  document.getElementById('bEmb').classList.toggle('on',m==='emb');
  document.getElementById('cap1').textContent=d.cap;
  document.getElementById('toks').innerHTML=d.toks.map(function(t){
-  var cls=t[1].indexOf('없다')>-1||t[1]==='어미'?'unknown':'known';
+  var cls=t[1].indexOf('없다')>-1?'unknown':'known';
   return '<span class="tok '+cls+'">'+t[0]+'<span class="st">'+t[1]+'</span></span>';
  }).join('');
  document.getElementById('verdict').innerHTML=d.verdict.map(function(v){

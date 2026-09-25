@@ -36,7 +36,7 @@ body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2
 <script>
 (function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
 </script>
-<p class="cap">벡터 단추를 누르면 그래프에 화살표가 그려진다. 두 개가 모두 선택되면 두 벡터가 이루는 각이 나타난다</p>
+<p class="cap">벡터 A나 B 단추를 누를 때마다 그 화살표가 다음 좌표로 바뀐다. 두 화살표가 이루는 각과 유사도가 함께 바뀐다</p>
 <div class="stage">
   <div class="plot" id="plot"><svg viewBox="0 0 320 200" id="svg" aria-label="좌표 평면 위의 두 벡터"></svg></div>
   <div class="side">
@@ -60,14 +60,14 @@ try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',functi
 parent.postMessage({type:'figure-ready'},'*');
 
 function $(id){return document.getElementById(id)}
-// candidate vectors (2D): word-like examples
+// candidate coordinates; the A and B buttons cycle through them
 var CAND=[
- {name:'벡터 A', x:2, y:1},
- {name:'벡터 B', x:1, y:2},
- {name:'벡터 C', x:-1, y:2},
- {name:'벡터 D', x:-2, y:-1},
- {name:'벡터 E', x:2, y:0},
- {name:'벡터 F', x:4, y:2}
+ {x:2, y:1},
+ {x:1, y:2},
+ {x:-1, y:2},
+ {x:-2, y:-1},
+ {x:2, y:0},
+ {x:4, y:2}
 ];
 // describe the pair from the computed value, so any A/B combination reads correctly
 function describe(c,a,b){
@@ -115,8 +115,8 @@ function draw(){
  $('v1xy').textContent=fmt(a.x,a.y);
  $('v2xy').textContent=fmt(b.x,b.y);
 }
-$('v1').onclick=function(){sel1=(sel1+1)%CAND.length;$('v1').querySelector('.lab').textContent=CAND[sel1].name;draw()};
-$('v2').onclick=function(){sel2=(sel2+1)%CAND.length;$('v2').querySelector('.lab').textContent=CAND[sel2].name;draw()};
+$('v1').onclick=function(){sel1=(sel1+1)%CAND.length;draw()};
+$('v2').onclick=function(){sel2=(sel2+1)%CAND.length;draw()};
 draw();
 </script>
 </body>
