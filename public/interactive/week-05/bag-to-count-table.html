@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>단어가 몇 번 나왔나</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--accent:#2563eb;--accent-soft:rgba(37,99,235,.14);--row:rgba(37,99,235,.08)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--accent:#22d3ee;--accent-soft:rgba(34,211,238,.16);--row:rgba(34,211,238,.09)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{border:1px solid var(--border);padding:4px 8px;text-align:center}
+th{background:var(--card);font-weight:600}
+td:first-child{text-align:left}
+td:first-child small{display:block;color:var(--muted);font-size:11px;font-weight:400}
+th[data-c]{cursor:pointer}
+td.one{font-weight:700}
+.hl{background:var(--accent-soft)!important;color:var(--accent)}
+.note{margin:8px 0 0;color:var(--muted);font-size:12.5px;min-height:18px}
+.note b{color:var(--accent)}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">한 줄이 리뷰 한 건, 한 칸이 단어 하나다. 단어 이름을 누르면 그 단어가 나온 칸이 밝아진다</p>
+<table id="t"></table>
+<p class="note" id="note">분류기가 보는 것은 <b>이 표의 숫자</b>뿐이다. 문장 원문은 보지 않는다</p>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+
+var WORDS=['객실이','좋았다','직원들이','직원이','더러웠다'];
+// four of the notebook's training reviews
+var REVIEWS=['바다가 보이는 객실이 정말 좋았다','조식이 맛있고 직원들이 친절했다','직원이 불친절하고 방이 더러웠다','위치가 좋고 객실이 넓었다'];
+var t=document.getElementById('t'),note=document.getElementById('note'),base=note.innerHTML;
+var html='<tr><th>리뷰</th>'+WORDS.map(function(w,j){return '<th data-c="'+j+'">'+w+'</th>'}).join('')+'</tr>';
+REVIEWS.forEach(function(r,i){
+ var toks=r.split(' ');
+ html+='<tr><td>리뷰'+(i+1)+'<small>'+r+'</small></td>'+WORDS.map(function(w,j){
+  var n=toks.filter(function(x){return x===w}).length;
+  return '<td data-c="'+j+'"'+(n?' class="one"':'')+'>'+n+'</td>';
+ }).join('')+'</tr>';
+});
+t.innerHTML=html;
+var cur=-1;
+t.querySelectorAll('th[data-c]').forEach(function(th){
+ th.onclick=function(){
+  var j=+th.getAttribute('data-c');cur=cur===j?-1:j;
+  t.querySelectorAll('[data-c]').forEach(function(c){c.classList.toggle('hl',+c.getAttribute('data-c')===cur&&(c.tagName==='TH'||c.textContent!=='0'))});
+  if(cur<0){note.innerHTML=base;return}
+  var hits=REVIEWS.map(function(r,i){return r.split(' ').indexOf(WORDS[cur])>=0?'리뷰'+(i+1):null}).filter(Boolean);
+  note.innerHTML='<b>'+WORDS[cur]+'</b> 는 '+hits.join(', ')+'에 나왔다. 나머지 칸은 0이다';
+ };
+});
+</script>
+</body>
+</html>

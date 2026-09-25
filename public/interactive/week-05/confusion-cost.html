@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>틀리는 두 가지</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--ok:#16a34a;--ok-soft:rgba(22,163,74,.10);--err:#dc2626;--err-soft:rgba(220,38,38,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--ok:#4ade80;--ok-soft:rgba(74,222,128,.12);--err:#f87171;--err-soft:rgba(248,113,113,.13)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:10px}
+.seg button{border:none;background:none;color:var(--muted);padding:5px 12px;font-size:12.5px;cursor:pointer;font-family:inherit}
+.seg button.on{background:var(--err-soft);color:var(--err);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th,td{border:1px solid var(--border);padding:6px 8px;text-align:center}
+th{background:var(--card);font-weight:600}
+th small{display:block;font-weight:400;color:var(--muted);font-size:10.5px}
+td small{display:block;color:var(--muted);font-size:10.5px;margin-top:2px}
+td.ok{background:var(--ok-soft)}
+td.err{background:var(--err-soft)}
+td.err b{color:var(--err)}
+td.dim{opacity:.45}
+td.worse{box-shadow:inset 0 0 0 2px var(--err)}
+td.worse::after{content:'더 비싼 오류';display:block;font-size:10.5px;color:var(--err);font-weight:700;margin-top:2px}
+.note{margin:10px 0 0;color:var(--muted);font-size:12.5px;min-height:34px}
+.note b{color:var(--err)}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">토글을 바꿔 보세요. 어느 오류가 더 비싼지 시나리오마다 다르다</p>
+<div class="seg">
+  <button id="bSpam" class="on" type="button">스팸 필터</button>
+  <button id="bRev" type="button">관광 리뷰 감성</button>
+</div>
+<table>
+<tr><th></th><th>분류기 판정 <small id="h1"></small></th><th>분류기 판정 <small id="h2"></small></th></tr>
+<tr><th>실제 <small id="r1"></small></th>
+  <td class="ok" data-c="tn">맞음<small id="tn"></small></td>
+  <td class="err" id="fpCell" data-c="fp"><b id="fp"></b><small id="fpDesc"></small></td></tr>
+<tr><th>실제 <small id="r2"></small></th>
+  <td class="err" id="fnCell" data-c="fn"><b id="fn"></b><small id="fnDesc"></small></td>
+  <td class="ok" data-c="tp">맞음<small id="tp"></small></td></tr>
+</table>
+<p class="note" id="note"></p>
+<script>
+function $(id){return document.getElementById(id)}
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+
+var SC={
+ spam:{
+  a:'정상',b:'스팸',
+  tp:'스팸',fn:'스팸 놓침',fp:'정상 메일 버림',tn:'정상',
+  fpDesc:'중요한 메일이 사라진다',fnDesc:'스팸이 눈에 들어온다',
+  note:'스팸 필터에서는 <b>정상 메일을 버리는 쪽(윗줄 오른쪽)</b>이 더 비싼 오류다. 스팸 한 통은 참지만 중요한 메일 하나를 잃으면 안 된다'
+ },
+ rev:{
+  a:'긍정',b:'부정',
+  tp:'부정',fn:'부정을 긍정으로',fp:'긍정을 부정으로',tn:'긍정',
+  fpDesc:'좋은 리뷰를 나쁘게 옮긴다',fnDesc:'불만 리뷰를 좋게 옮긴다',
+  note:'관광 리뷰에서는 <b>어느 쪽이 더 비싼지 정해진 답이 없다.</b> 결과를 누가 받아 어디에 쓰는지에 따라 달라진다. 활동 B에서 직접 정해 본다'
+ }
+};
+function setMode(m){
+ $('bSpam').classList.toggle('on',m==='spam');
+ $('bRev').classList.toggle('on',m==='rev');
+ var s=SC[m];
+ $('h1').textContent=s.a;$('h2').textContent=s.b;$('r1').textContent=s.a;$('r2').textContent=s.b;
+ $('tp').textContent=s.tp;$('tn').textContent=s.tn;
+ $('fp').textContent=s.fp;$('fn').textContent=s.fn;
+ $('fpDesc').textContent=s.fpDesc;$('fnDesc').textContent=s.fnDesc;
+ $('fpCell').classList.toggle('worse',m==='spam');
+ $('fnCell').classList.remove('worse');
+ $('note').innerHTML=s.note;
+}
+$('bSpam').onclick=function(){setMode('spam')};
+$('bRev').onclick=function(){setMode('rev')};
+setMode('spam');
+</script>
+</body>
+</html>
