@@ -76,7 +76,7 @@ function setMode(m){
  document.getElementById('bEmb').classList.toggle('on',m==='emb');
  document.getElementById('cap1').textContent=d.cap;
  document.getElementById('toks').innerHTML=d.toks.map(function(t){
-  var cls=t[1].indexOf('없다')>-1||t[1]==='어미'?'unknown':'known';
+  var cls=t[1].indexOf('없다')>-1?'unknown':'known';
   return '<span class="tok '+cls+'">'+t[0]+'<span class="st">'+t[1]+'</span></span>';
  }).join('');
  document.getElementById('verdict').innerHTML=d.verdict.map(function(v){
