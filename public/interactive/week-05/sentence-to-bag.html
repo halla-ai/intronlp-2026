@@ -12,7 +12,7 @@ body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;back
 body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--accent:#2563eb;--accent-soft:rgba(37,99,235,.10);--num:#16a34a}
 body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--accent:#22d3ee;--accent-soft:rgba(34,211,238,.12);--num:#4ade80}
 .cap{font-size:12px;color:var(--muted);margin:0 0 8px}
-.sentence{border:1px solid var(--border);background:var(--card);border-radius:10px;padding:9px 12px;font-size:15px;text-align:center;margin-bottom:10px;cursor:pointer}
+.sentence{display:block;width:100%;font:inherit;color:inherit;border:1px solid var(--border);background:var(--card);border-radius:10px;padding:9px 12px;font-size:15px;text-align:center;margin-bottom:10px;cursor:pointer}
 .word{display:inline-block;margin:0 2px;transition:opacity .5s,transform .5s}
 .word.fly{opacity:0;transform:translateY(26px) scale(.6)}
 .bag{border:1.5px dashed var(--accent);border-radius:10px;background:var(--accent-soft);padding:9px 12px;min-height:96px}
@@ -29,8 +29,8 @@ body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2
 <script>
 (function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
 </script>
-<p class="cap">문장을 누르면 단어가 가방으로 들어간다. 누를 때마다 다른 문장</p>
-<div class="sentence" id="sentence"></div>
+<p class="cap" id="cap">문장을 누르면 단어가 가방으로 들어간다. 누를 때마다 다른 문장</p>
+<button type="button" class="sentence" id="sentence" aria-describedby="cap"></button>
 <div class="bag">
   <h3>단어 가방 (순서 버림)</h3>
   <div class="slots" id="slots"></div>
@@ -47,10 +47,10 @@ var S=[
  '직원이 불친절하고 방이 더러웠다',
  '조식도 좋았고 뷰도 좋았고 직원도 친절했다'
 ];
-var idx=0;
+var idx=0,gen=0;
 var sent=document.getElementById('sentence'),slots=document.getElementById('slots'),note=document.getElementById('note');
-function show(){
- var s=S[idx%S.length];
+function show(k){
+ var s=S[k%S.length],g=++gen;
  sent.innerHTML=s.split(' ').map(function(w){return '<span class="word">'+w+'</span>'}).join(' ');
  slots.innerHTML='';
  note.innerHTML='순서는 가방에 담기지 않는다. 가방에는 <b>어떤 단어가 몇 번 나왔는지</b>만 남는다';
@@ -58,18 +58,19 @@ function show(){
  words.forEach(function(w,j){
   var n=s.split(' ').filter(function(x){return x===w}).length;
   setTimeout(function(){
+   if(g!==gen)return; // a newer sentence replaced this one
    var d=document.createElement('span');d.className='slot';d.innerHTML=w+(n>1?' <b>x'+n+'</b>':'');
    slots.appendChild(d);
   },300+j*220);
  });
 }
-function wordFly(s){
+function wordFly(k){
  sent.querySelectorAll('.word').forEach(function(w,j){
   setTimeout(function(){w.classList.add('fly')},j*90);
  });
- setTimeout(show,420);
+ setTimeout(function(){show(k)},420); // k is fixed per click, so fast clicks never skip a sentence
 }
-sent.onclick=function(){idx++;wordFly(S[idx%S.length])};
-show();</script>
+sent.onclick=function(){wordFly(++idx)};
+show(0);</script>
 </body>
 </html>

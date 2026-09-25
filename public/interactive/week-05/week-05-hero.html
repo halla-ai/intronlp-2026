@@ -62,10 +62,11 @@ var REV=[
  ['바다가 보이는 객실이 정말 좋았다',1],
  ['조식이 맛있고 직원들이 친절했다',1],
  ['소음이 심해서 잠을 못 잤다',0],
- ['사진과 다르고 방이 낡았다',0]
+ ['사진과 다르고 좁고 낡았다',0]
 ];
-var pool=el('pool'),tray=el('tray');
+var pool=el('pool'),tray=el('tray'),gen=0;
 function init(){
+ gen++;
  el('posList').innerHTML='';el('negList').innerHTML='';
  el('posCount').textContent='0';el('negCount').textContent='0';
  el('done').textContent='';
@@ -80,17 +81,19 @@ function init(){
 function sort(i,b){
  if(b.classList.contains('sorted'))return;
  b.classList.add('sorted');
+ var g=gen;
  tray.innerHTML='';
  REV[i][0].split(' ').forEach(function(w,j){
   var c=document.createElement('span');c.className='chip';c.textContent=w;c.style.animationDelay=(j*90)+'ms';
   tray.appendChild(c);
  });
  setTimeout(function(){
+  if(g!==gen)return; // reset while this card was moving
   var pos=REV[i][1]===1;
   var list=el(pos?'posList':'negList');
   var it=document.createElement('div');it.className='item';it.textContent=REV[i][0];list.appendChild(it);
   el(pos?'posCount':'negCount').textContent=String(list.children.length);
-  if(list.children.length===REV.length)el('done').textContent='글 전체를 두 바구니 중 하나로 나눴다. 이번 주에는 이 판단을 기계가 하도록 만든다';
+  if(el('posList').children.length+el('negList').children.length===REV.length)el('done').textContent='글 전체를 두 바구니 중 하나로 나눴다. 이번 주에는 이 판단을 기계가 하도록 만든다';
  },650);
 }
 el('reset').onclick=init;
