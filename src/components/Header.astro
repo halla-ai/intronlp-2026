@@ -5,13 +5,14 @@
  */
 import config from 'virtual:starlight/user-config';
 
-import LanguageSelect from 'virtual:starlight/components/LanguageSelect';
-import Search from 'virtual:starlight/components/Search';
-import SiteTitle from 'virtual:starlight/components/SiteTitle';
-import SocialIcons from 'virtual:starlight/components/SocialIcons';
-import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
+import LanguageSelect from '@astrojs/starlight/components/LanguageSelect.astro';
+import Search from '@astrojs/starlight/components/Search.astro';
+import SiteTitle from '@astrojs/starlight/components/SiteTitle.astro';
+import SocialIcons from '@astrojs/starlight/components/SocialIcons.astro';
 
 import FocusToggle from './FocusToggle.astro';
+// ThemeSelect is overridden in astro.config.mjs, so import the override directly.
+import ThemeSelect from './ThemeSelect.astro';
 
 /**
  * Render the `Search` component if Pagefind is enabled or the default search component has been overridden.
