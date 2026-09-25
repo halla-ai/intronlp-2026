@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>두 벡터가 이루는 각</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--a:#2563eb;--b:#16a34a;--a-soft:rgba(37,99,235,.10);--b-soft:rgba(22,163,74,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--a:#22d3ee;--b:#4ade80;--a-soft:rgba(34,211,238,.12);--b-soft:rgba(74,222,128,.13)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.stage{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;align-items:stretch}
+.plot{border:1px solid var(--border);border-radius:10px;background:var(--card);position:relative;min-height:190px}
+.plot svg{width:100%;height:100%;display:block}
+.side{display:flex;flex-direction:column;gap:8px}
+.vecs{display:flex;gap:6px}
+.vbtn{flex:1;border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:8px;padding:6px 8px;font-size:12px;cursor:pointer;font-family:inherit;text-align:left;transition:background .2s,border-color .2s}
+.vbtn .lab{font-weight:600;font-size:12.5px;display:block}
+.vbtn .xy{color:var(--muted);font-size:11px}
+.vbtn.on.v1{background:var(--a-soft);border-color:var(--a)}
+.vbtn.on.v2{background:var(--b-soft);border-color:var(--b)}
+.readout{border:1px solid var(--border);border-radius:10px;background:var(--card);padding:8px 10px;flex:1}
+.readout .v{font-size:22px;font-weight:700;margin-bottom:2px}
+.readout .lab{font-size:11.5px;color:var(--muted)}
+.readout .desc{font-size:12.5px;margin-top:6px;min-height:34px;color:var(--muted)}
+.bar{height:8px;border-radius:999px;background:var(--card);border:1px solid var(--border);overflow:hidden;margin-top:8px;position:relative}
+.bar .fill{position:absolute;left:0;top:0;bottom:0;border-radius:999px;transition:width .3s,background .3s}
+.note{margin:10px 0 0;font-size:12.5px;color:var(--muted);min-height:34px}
+.note b{color:var(--text)}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">벡터 단추를 누르면 그래프에 화살표가 그려진다. 두 개가 모두 선택되면 두 벡터가 이루는 각이 나타난다</p>
+<div class="stage">
+  <div class="plot" id="plot"><svg viewBox="0 0 320 200" id="svg" aria-label="좌표 평면 위의 두 벡터"></svg></div>
+  <div class="side">
+    <div class="vecs">
+      <button class="vbtn v1" id="v1" type="button"><span class="lab">벡터 A</span><span class="xy" id="v1xy">[2, 1]</span></button>
+      <button class="vbtn v2" id="v2" type="button"><span class="lab">벡터 B</span><span class="xy" id="v2xy">[1, 2]</span></button>
+    </div>
+    <div class="readout">
+      <div class="v" id="cosv">0.80</div>
+      <div class="lab">코사인 유사도는 두 화살표가 벌어진 각도로만 정해진다. 같은 방향이면 1, 직각이면 0, 반대면 -1</div>
+      <div class="bar"><div class="fill" id="barfill"></div></div>
+      <div class="desc" id="desc"></div>
+    </div>
+  </div>
+</div>
+<p class="note" id="foot"></p>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+
+function $(id){return document.getElementById(id)}
+// candidate vectors (2D): word-like examples
+var CAND=[
+ {name:'벡터 A', x:2, y:1},
+ {name:'벡터 B', x:1, y:2},
+ {name:'벡터 C', x:-1, y:2},
+ {name:'벡터 D', x:-2, y:-1},
+ {name:'벡터 E', x:2, y:0},
+ {name:'벡터 F', x:4, y:2}
+];
+// describe the pair from the computed value, so any A/B combination reads correctly
+function describe(c,a,b){
+ var same=a.x*b.y===a.y*b.x&&c>0&&(a.x!==b.x||a.y!==b.y);
+ if(same)return '방향이 같고 길이만 다르다. <b>길이가 달라도 방향이 같으면 1</b>이다';
+ if(c>0.99)return '같은 벡터다. 값은 1이다';
+ if(c>0.3)return '비슷한 방향이다. 1에 가까울수록 더 비슷하다';
+ if(c>-0.01&&c<0.01)return '직각이다. 겹치는 방향이 없으면 0이다';
+ if(c<-0.99)return '정반대 방향이다. 값은 -1이다';
+ if(c<0)return '반대쪽으로 벌어진 방향이다. 값이 음수다';
+ return '많이 벌어진 방향이다. 0에 가깝다';
+}
+var sel1=0,sel2=1;
+function fmt(x,y){return '['+x+', '+y+']'}
+function cos(a,b){var d=a.x*b.x+a.y*b.y;var na=Math.hypot(a.x,a.y),nb=Math.hypot(b.x,b.y);return (na&&nb)?d/(na*nb):0}
+function draw(){
+ var a=CAND[sel1],b=CAND[sel2];
+ var svg=$('svg');
+ var ox=120,oy=125,sc=26;
+ var X=function(v){return ox+v*sc},Y=function(v){return oy-v*sc};
+ var grid='';
+ for(var i=-4;i<=7;i++){grid+='<line x1="'+X(i)+'" y1="20" x2="'+X(i)+'" y2="190" stroke="var(--border)" stroke-width="'+(i===0?1:0.5)+'" opacity="'+(i===0?0.9:0.4)+'"/>'}
+ for(var j=-2;j<=4;j++){grid+='<line x1="20" y1="'+Y(j)+'" x2="310" y2="'+Y(j)+'" stroke="var(--border)" stroke-width="'+(j===0?1:0.5)+'" opacity="'+(j===0?0.9:0.4)+'"/>'}
+ var arrow=function(x,y,color,label){
+  var ex=X(x),ey=Y(y);
+  var ang=Math.atan2(Y(0)-ey,ex-X(0));
+  var L=10;
+  var hx=ex+L*Math.cos(ang),hy=ey-L*Math.sin(ang);
+  var hx2=ex+L*Math.cos(ang-0.5),hy2=ey-L*Math.sin(ang-0.5);
+  var hx3=ex+L*Math.cos(ang+0.5),hy3=ey-L*Math.sin(ang+0.5);
+  return '<line x1="'+X(0)+'" y1="'+Y(0)+'" x2="'+ex+'" y2="'+ey+'" stroke="'+color+'" stroke-width="2.5"/>'+
+   '<polygon points="'+ex+','+ey+' '+hx2+','+hy2+' '+hx3+','+hy3+'" fill="'+color+'"/>'+
+   '<text x="'+(ex+(x>=0?8:-8))+'" y="'+(ey+(y>=0?-6:12))+'" fill="'+color+'" font-size="11" font-family="Pretendard" text-anchor="'+(x>=0?'start':'end')+'">'+label+'</text>';
+ };
+ svg.innerHTML=grid+arrow(a.x,a.y,'var(--a)','A')+arrow(b.x,b.y,'var(--b)','B');
+ var c=cos(a,b);
+ $('cosv').textContent=c.toFixed(2);
+ var ang=Math.round(Math.acos(Math.min(1,Math.max(-1,c)))*180/Math.PI);
+ $('desc').innerHTML='두 벡터가 이루는 각은 <b>'+ang+'도</b>. '+describe(c,a,b);
+ var fill=$('barfill');
+ var pct=(c+1)/2*100;
+ fill.style.width=pct+'%';
+ fill.style.background=c>=0?'var(--b)':'var(--a)';
+ $('foot').innerHTML='단어 벡터도 똑같다. 좌표가 42개일 뿐. <b>두 단어의 벡터 방향이 비슷하면 유사도가 1에 가깝고, 겹치는 좌표가 없으면 0이다.</b> 귤을~귤은이 0.00인 것은 방향이 직각이라는 뜻이다';
+ $('v1xy').textContent=fmt(a.x,a.y);
+ $('v2xy').textContent=fmt(b.x,b.y);
+}
+$('v1').onclick=function(){sel1=(sel1+1)%CAND.length;$('v1').querySelector('.lab').textContent=CAND[sel1].name;draw()};
+$('v2').onclick=function(){sel2=(sel2+1)%CAND.length;$('v2').querySelector('.lab').textContent=CAND[sel2].name;draw()};
+draw();
+</script>
+</body>
+</html>

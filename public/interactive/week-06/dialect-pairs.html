@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>같은 뜻, 다른 표기</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--a:#2563eb;--a-soft:rgba(37,99,235,.10);--err:#dc2626;--err-soft:rgba(220,38,38,.10);--hl:#b45309;--hl-soft:rgba(180,83,9,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--a:#22d3ee;--a-soft:rgba(34,211,238,.12);--err:#f87171;--err-soft:rgba(248,113,113,.13);--hl:#fbbf24;--hl-soft:rgba(251,191,36,.12)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.pairrow{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.pbtn{border:1px solid var(--border);background:var(--card);color:var(--text);border-radius:999px;padding:3px 12px;font-size:12.5px;cursor:pointer;font-family:inherit;transition:background .2s,border-color .2s}
+.pbtn:hover{border-color:var(--muted)}
+.pbtn.on{background:var(--a-soft);border-color:var(--a);color:var(--a);font-weight:600}
+.caps{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.corp{border:1px solid var(--border);border-radius:10px;background:var(--card);padding:8px 10px}
+.corp h4{margin:0 0 6px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:6px}
+.corp h4 .dot{width:8px;height:8px;border-radius:50%}
+.corp.d h4 .dot{background:var(--a)}
+.corp.s h4 .dot{background:var(--hl)}
+.sentlist{display:flex;flex-direction:column;gap:4px}
+.sn{font-size:12.5px;color:var(--muted);animation:pop .35s ease both}
+.sn b{background:var(--hl-soft);border-radius:4px;padding:0 3px;color:var(--hl)}
+.sn i{font-style:normal;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+.corp.d .sn b{background:var(--a-soft);color:var(--a)}
+@keyframes pop{from{transform:scale(.97);opacity:0}}
+.verdict{display:flex;gap:10px;align-items:stretch;margin-bottom:8px}
+.verdict .box{flex:1;border:1px solid var(--border);border-radius:10px;background:var(--card);padding:8px 10px;display:flex;flex-direction:column;justify-content:center}
+.verdict .v{font-size:15px;font-weight:700}
+.verdict .v.ok{color:var(--a)}
+.verdict .v.no{color:var(--err)}
+.verdict .l{font-size:11px;color:var(--muted)}
+.note{padding:8px 10px;border:1px dashed var(--border);border-radius:10px;font-size:12.5px;color:var(--muted);min-height:52px}
+.note b{color:var(--text)}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">경우를 바꿔 보세요. 바당(방언)과 바다(표준어)는 같은 뜻이다. 둘이 비슷하게 나오는지는 <b>주변 말이 겹치느냐</b>에 달렸다</p>
+<div class="pairrow" id="pairs"></div>
+<div class="caps">
+  <div class="corp d"><h4><span class="dot"></span>방언 문장</h4><div class="sentlist" id="dList"></div></div>
+  <div class="corp s"><h4><span class="dot"></span>표준어 문장</h4><div class="sentlist" id="sList"></div></div>
+</div>
+<div class="verdict">
+  <div class="box"><span class="v ok">사람의 눈: 같은 뜻</span><span class="l">바당은 바다의 제주어다</span></div>
+  <div class="box"><span class="v" id="vStat"></span><span class="l" id="lStat"></span></div>
+</div>
+<p class="note" id="note"></p>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+
+// illustrative sentences; similarities computed with the notebook's window-2 matrix (notebooks/week-06.ipynb cell 1-6)
+var DATA={
+ "이웃이 같다":{d:"바당에서 물질을 했다",s:"바다에서 물질을 했다",shared:["물질을","했다"],sim:"1.00",
+  note:'주변 말이 모두 표준어라 바당에서와 바다에서의 이웃이 <b>물질을·했다로 똑같다.</b> 분포 가설은 표기가 달라도 같은 자리에 쓰이는 말을 비슷하다고 잡아낸다'},
+ "이웃 하나가 방언":{d:"바당에서 하영 놀았다",s:"바다에서 많이 놀았다",shared:["놀았다"],sim:"0.50",
+  note:'하영(많이)이 방언이라 이웃 둘 중 <b>놀았다 하나만 겹친다.</b> 같은 뜻인데 유사도가 반으로 줄었다'},
+ "이웃도 모두 방언":{d:"바당에서 하영 놀멍 쉬멍",s:"바다에서 많이 놀며 쉬며",shared:[],sim:"0.00",
+  note:'바당에서의 이웃 하영·놀멍도 방언이라 <b>겹치는 이웃이 하나도 없다.</b> 실제 방언 발화에서는 방언 단어가 방언 단어와 함께 나오기 쉬워, 같은 뜻의 대응쌍이 이렇게 갈라진다. 여섯 문장을 한 말뭉치에 섞어도 0.375에 그친다'}
+};
+var keys=Object.keys(DATA),cur=keys[0];
+keys.forEach(function(k){
+ var b=document.createElement('button');b.type='button';b.className='pbtn';b.textContent=k;b.dataset.k=k;
+ b.onclick=function(){cur=k;render()};
+ document.getElementById('pairs').appendChild(b);
+});
+function mark(sent,target,shared){
+ return sent.split(' ').map(function(w){
+  if(w===target)return '<b>'+w+'</b>';
+  if(shared.indexOf(w)>-1)return '<i>'+w+'</i>';
+  return w;
+ }).join(' ');
+}
+function render(){
+ document.querySelectorAll('.pbtn').forEach(function(b){b.classList.toggle('on',b.dataset.k===cur)});
+ var d=DATA[cur];
+ document.getElementById('dList').innerHTML='<span class="sn">'+mark(d.d,'바당에서',d.shared)+'</span>';
+ document.getElementById('sList').innerHTML='<span class="sn">'+mark(d.s,'바다에서',d.shared)+'</span>';
+ var v=document.getElementById('vStat');
+ v.textContent='통계의 눈: '+d.sim;v.className='v '+(d.sim==='0.00'?'no':'ok');
+ document.getElementById('lStat').textContent=d.shared.length?'겹치는 이웃(밑줄): '+d.shared.join(', '):'겹치는 이웃이 없다';
+ document.getElementById('note').innerHTML=d.note+'. 문장은 설명용 예시다';
+}
+render();
+</script>
+</body>
+</html>
