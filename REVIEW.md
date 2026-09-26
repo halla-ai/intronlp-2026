@@ -32,7 +32,7 @@ Report at most 5 nits per review; summarize the rest as a count.
 - Generated paths: `dist/`, `.astro/`, `node_modules/`, `pnpm-lock.yaml`. For `notebooks/week-NN.ipynb` produced by `scripts/gen_weekNN.py`, review the generator and treat the notebook as its output.
 - Anything CI already enforces: assignment folder checks (`check-assignment.yml`) and the week 4 notebook run (`check-notebooks.yml`).
 
-## Feedback into CLAUDE.md
+## Feedback into AGENTS.md
 
 When the same finding appears twice, the correction goes into `AGENTS.md` in the same PR.
 
