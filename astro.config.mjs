@@ -39,7 +39,7 @@ export default defineConfig({
             { label: '2주차: 언어와 말뭉치, 텍스트 전처리와 단어 분포', link: '/weeks/week-02' },
             { label: '3주차: 확률론적 언어모델, N-그램 모델', link: '/weeks/week-03' },
             { label: '4주차: 숨겨진 마르코프 모델(HMM)과 시퀀스 태깅', link: '/weeks/week-04' },
-            { label: '5주차: 통계적 텍스트 분류, 나이브 베이즈와 문서 분류', link: '/weeks/week-05' },
+            { label: '5주차: 통계적 텍스트 분류와 문서 분류', link: '/weeks/week-05' },
             { label: '6주차: 단어의 의미 표현, 분포적 통계와 임베딩 기초', link: '/weeks/week-06' },
             { label: '7주차: 신경망 기반 단어 임베딩, Word2Vec', link: '/weeks/week-07' },
             { label: '8주차: 문장 임베딩과 텍스트 유사도', link: '/weeks/week-08' },

@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>문턱을 옮기면</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--pos:#16a34a;--pos-soft:rgba(22,163,74,.12);--neg:#dc2626;--neg-soft:rgba(220,38,38,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--pos:#4ade80;--pos-soft:rgba(74,222,128,.14);--neg:#f87171;--neg-soft:rgba(248,113,113,.13)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.sl{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.sl label{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.sl input{flex:1;accent-color:var(--pos)}
+.sl .v{font-size:13px;min-width:44px}
+.legend{display:flex;gap:12px;font-size:11.5px;color:var(--muted);margin-bottom:6px}
+.dots{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+.track{position:relative;height:64px;border:1px solid var(--border);border-radius:10px;background:var(--card);overflow:hidden}
+.line{position:absolute;top:0;bottom:0;width:2px;background:var(--text);opacity:.6;transition:left .2s}
+.linelabel{position:absolute;top:4px;transform:translateX(-50%);font-size:10.5px;color:var(--muted);transition:left .2s;white-space:nowrap}
+.dot{position:absolute;width:13px;height:13px;border-radius:50%;top:50%;transform:translate(-50%,-50%);transition:background .3s,box-shadow .3s}
+.dot.p{background:var(--pos)}.dot.n{background:var(--neg)}
+.dot.miss{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--text)}
+.tally{display:flex;flex-wrap:wrap;gap:4px 16px;justify-content:center;margin-top:10px;font-size:13px;min-height:20px}
+.tally b{font-size:15px}
+.p{color:var(--pos)}.n{color:var(--neg)}
+.note{margin:6px 0 0;text-align:center;color:var(--muted);font-size:12px;min-height:17px}
+.note b{color:var(--text)}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">설명용 리뷰 12건을 긍정 확률 순서로 늘어놓았다. 문턱을 옮기면 문턱 오른쪽은 긍정, 왼쪽은 부정으로 판정된다</p>
+<div class="sl">
+  <label for="th">문턱</label>
+  <input type="range" id="th" min="10" max="90" step="1" value="50">
+  <span class="v" id="thv">0.50</span>
+</div>
+<div class="legend">
+  <span><span class="dots" style="background:var(--pos)"></span>실제 긍정 리뷰</span>
+  <span><span class="dots" style="background:var(--neg)"></span>실제 부정 리뷰</span>
+  <span><span class="dots" style="box-shadow:0 0 0 2px var(--text)"></span>틀린 판정</span>
+</div>
+<div class="track" id="track" aria-label="긍정 확률 0에서 1까지"><div class="linelabel" id="linelabel">문턱</div><div class="line" id="line"></div></div>
+<div class="tally" id="tally"></div>
+<p class="note">문턱을 올리면 긍정 판정이 줄어 <b>놓친 긍정</b>이 늘고, 내리면 <b>잘못 올린 부정</b>이 는다</p>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+
+// illustrative probabilities: negatives mostly low, positives mostly high, overlapping in the middle
+var pts=[0.12,0.22,0.30,0.38,0.47,0.58,0.42,0.53,0.62,0.71,0.80,0.90];
+var labels=[0,0,0,0,0,0,1,1,1,1,1,1];
+var sl=document.getElementById('th'),thv=document.getElementById('thv'),line=document.getElementById('line'),linelabel=document.getElementById('linelabel'),tally=document.getElementById('tally'),track=document.getElementById('track');
+pts.forEach(function(p,i){
+ var d=document.createElement('div');
+ d.className='dot '+(labels[i]?'p':'n');
+ d.style.left=(p*100)+'%';
+ track.appendChild(d);
+});
+function render(){
+ var t=parseInt(sl.value)/100;
+ thv.textContent=t.toFixed(2);
+ line.style.left=(t*100)+'%';
+ linelabel.style.left=(t*100)+'%';
+ var fn=0,fp=0,npos=0;
+ document.querySelectorAll('.dot').forEach(function(d,i){
+  var pred=pts[i]>=t;
+  if(pred)npos++;
+  var miss=(labels[i]===1)!==pred;
+  d.classList.toggle('miss',miss);
+  if(miss){if(labels[i]===1)fn++;else fp++}
+ });
+ tally.innerHTML='<span>긍정 판정 <b>'+npos+'</b>건</span><span>놓친 긍정 (긍정을 부정으로) <b class="p">'+fn+'</b></span><span>잘못 올린 부정 (부정을 긍정으로) <b class="n">'+fp+'</b></span>';
+}
+sl.addEventListener('input',render);
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>단어에 매겨진 점수</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--pos:#16a34a;--pos-soft:rgba(22,163,74,.12);--neg:#dc2626;--neg-soft:rgba(220,38,38,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--pos:#4ade80;--pos-soft:rgba(74,222,128,.14);--neg:#f87171;--neg-soft:rgba(248,113,113,.13)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.chip{font:inherit;font-size:13.5px;padding:4px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);cursor:pointer}
+.chip small{margin-left:5px;font-size:11.5px}
+.chip.sel{outline:2px solid var(--muted);outline-offset:1px}
+.p{color:var(--pos)}.n{color:var(--neg)}
+.panel{border:1px solid var(--border);border-radius:10px;padding:10px 12px;background:var(--card)}
+.head{font-size:15px;margin:0 0 6px}
+.head b{font-size:17px}
+.axis{position:relative;height:10px;border-radius:999px;background:var(--bg);border:1px solid var(--border);margin:0 0 10px}
+.axis .mid{position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;background:var(--muted)}
+.axis .f{position:absolute;top:0;bottom:0;border-radius:999px;transition:left .25s,width .25s}
+.src{margin:0;padding:0;list-style:none}
+.src li{font-size:13px;padding:2px 0}
+.tag{display:inline-block;font-size:11px;border-radius:5px;padding:0 6px;margin-right:6px}
+.tag.p{background:var(--pos-soft)}.tag.n{background:var(--neg-soft)}
+.src mark{background:none;color:inherit;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+.why{margin:8px 0 0;font-size:12.5px;color:var(--muted)}
+.why b{color:var(--text)}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">단어를 눌러 보세요. 학습이 끝난 분류기가 매긴 점수와, 그 단어가 나온 학습 리뷰가 보인다</p>
+<div class="chips" id="chips"></div>
+<div class="panel">
+  <p class="head" id="head"></p>
+  <div class="axis"><div class="f" id="f"></div><div class="mid"></div></div>
+  <ul class="src" id="src"></ul>
+  <p class="why" id="why"></p>
+</div>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+
+// training reviews and weights from notebooks/week-05.ipynb (scripts/gen_week05.py)
+var R=[
+ ['바다가 보이는 객실이 정말 좋았다',1],['조식이 맛있고 직원들이 친절했다',1],['숙소가 깨끗하고 뷰가 아주 좋았다',1],
+ ['위치가 좋고 객실이 넓었다',1],['가격 대비 만족스러운 숙박이었다',1],
+ ['방에서 냄새가 나서 힘들었다',0],['직원이 불친절하고 방이 더러웠다',0],['소음이 심해서 잠을 못 잤다',0],
+ ['에어컨이 고장 나서 불편했다',0],['사진과 다르고 좁고 낡았다',0]
+];
+var W=[
+ ['객실이',.44,'감정과 상관없는 말인데 <b>긍정 점수가 가장 크다.</b> 긍정 리뷰 두 건에 나왔기 때문이다'],
+ ['좋았다',.42,'긍정 리뷰 두 건에 나와 점수가 크다. <b>사람이 봐도 긍정 근거</b>인 말이다'],
+ ['친절했다',.27,'긍정 리뷰 한 건에만 나왔다. <b>같은 리뷰의 조식이, 맛있고, 직원들이와 점수를 똑같이 나눠 가졌다.</b> 모델은 그 리뷰에서 어느 말이 진짜 이유인지 모른다'],
+ ['직원들이',.27,'뜻으로는 중립인데 <b>긍정 리뷰에 나왔다는 이유만으로</b> + 점수를 받았다'],
+ ['직원이',-.25,'직원들이와 뜻은 같지만 <b>조사 모양이 달라 다른 단어</b>다. 부정 리뷰에 나와서 - 점수를 받았다'],
+ ['더러웠다',-.25,'부정 리뷰 한 건에만 나왔다. 같은 리뷰의 직원이, 불친절하고, 방이와 <b>점수를 똑같이 나눠 가졌다</b>'],
+ ['못',-.23,'한 글자 단어다. 노트북에서 설정을 바꾸지 않았다면 <b>가방에 들어가지도 못하고 버려졌을</b> 말이다'],
+ ['나서',-.46,'냄새가 나서, 고장 나서의 나서다. 감정과 상관없는 말인데 부정 리뷰 두 건에 나와 <b>부정 점수가 가장 크다</b>']
+];
+var chips=document.getElementById('chips');
+function fmt(x){return (x>0?'+':'-')+Math.abs(x).toFixed(2)}
+function show(i){
+ var w=W[i],c=w[1]>0?'p':'n';
+ chips.querySelectorAll('.chip').forEach(function(b,j){b.classList.toggle('sel',j===i)});
+ document.getElementById('head').innerHTML=w[0]+' = <b class="'+c+'">'+fmt(w[1])+'</b>';
+ var f=document.getElementById('f'),pct=Math.abs(w[1])/0.5*50;
+ f.style.left=(w[1]>0?50:50-pct)+'%';f.style.width=pct+'%';f.style.background='var(--'+(w[1]>0?'pos':'neg')+')';
+ document.getElementById('src').innerHTML=R.filter(function(r){return r[0].split(' ').indexOf(w[0])>=0}).map(function(r){
+  return '<li><span class="tag '+(r[1]?'p':'n')+'">'+(r[1]?'긍정 리뷰':'부정 리뷰')+'</span>'+r[0].split(' ').map(function(t){return t===w[0]?'<mark>'+t+'</mark>':t}).join(' ')+'</li>';
+ }).join('');
+ document.getElementById('why').innerHTML=w[2];
+}
+W.forEach(function(w,i){
+ var b=document.createElement('button');b.className='chip';b.type='button';
+ b.innerHTML=w[0]+'<small class="'+(w[1]>0?'p':'n')+'">'+fmt(w[1])+'</small>';
+ b.onclick=function(){show(i)};
+ chips.appendChild(b);
+});
+show(0);
+</script>
+</body>
+</html>

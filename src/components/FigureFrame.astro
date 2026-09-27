@@ -1,0 +1,76 @@
+---
+/**
+ * Interactive figure frame — embeds a standalone HTML figure from /public
+ * in an iframe and keeps its light/dark theme in sync with the site.
+ */
+interface Props {
+  src: string;
+  title: string;
+  height?: string;
+}
+
+const { src, title, height = '340px' } = Astro.props;
+---
+
+<figure class="figure-frame">
+  <iframe src={src} title={title} loading="lazy" scrolling="no" style={`height: ${height};`}></iframe>
+</figure>
+
+<script>
+  function broadcastTheme(): void {
+    const theme = document.documentElement.dataset.theme || 'dark';
+    document.querySelectorAll<HTMLIFrameElement>('.figure-frame iframe').forEach((frame) => {
+      frame.contentWindow?.postMessage({ type: 'starlight-theme', theme }, '*');
+    });
+  }
+
+  new MutationObserver(broadcastTheme).observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme'],
+  });
+  window.addEventListener('message', (event) => {
+    if (event.data?.type === 'figure-ready') broadcastTheme();
+  });
+  window.addEventListener('load', broadcastTheme);
+  broadcastTheme();
+
+  // Grow each frame to its content (figures are same-origin), so wrapped text on
+  // narrow screens or longer user input is never clipped. The height prop is only the
+  // placeholder shown before the figure loads.
+  function fit(frame: HTMLIFrameElement): void {
+    const body = frame.contentDocument?.body;
+    if (!body) return;
+    let bottom = 0;
+    for (const el of Array.from(body.children)) bottom = Math.max(bottom, el.getBoundingClientRect().bottom);
+    frame.style.height = `${Math.ceil(bottom + 14)}px`;
+  }
+
+  function watch(frame: HTMLIFrameElement): void {
+    const doc = frame.contentDocument;
+    if (!doc?.body || doc.location.href === 'about:blank') return;
+    fit(frame);
+    new MutationObserver(() => fit(frame)).observe(doc.body, { subtree: true, childList: true, characterData: true });
+    doc.fonts?.ready.then(() => fit(frame));
+  }
+
+  document.querySelectorAll<HTMLIFrameElement>('.figure-frame iframe').forEach((frame) => {
+    frame.addEventListener('load', () => watch(frame));
+    if (frame.contentDocument?.readyState === 'complete') watch(frame);
+  });
+  window.addEventListener('resize', () => {
+    document.querySelectorAll<HTMLIFrameElement>('.figure-frame iframe').forEach(fit);
+  });
+</script>
+
+<style>
+  .figure-frame {
+    margin: 1rem 0;
+  }
+  .figure-frame iframe {
+    display: block;
+    width: 100%;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 8px;
+    background: var(--sl-color-bg);
+  }
+</style>
