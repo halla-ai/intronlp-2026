@@ -61,7 +61,7 @@ var NOTE={
  '제주 전통 음식':'단어와 글자 조각은 <b>제주</b>라는 말이 겹치는 11번(해녀박물관)을 고른다. 문장 임베딩만 고기국수를 설명한 7번을 찾는다'};
 var cur='우도 가는 배';
 function render(){
- document.querySelectorAll('#qs .chip').forEach(function(b){b.classList.toggle('on',b.dataset.q===cur)});
+ document.querySelectorAll('#qs .chip').forEach(function(b){b.classList.toggle('on',b.dataset.q===cur);b.setAttribute('aria-pressed',b.dataset.q===cur)});
  var r=S[cur],e=E[cur],h='';
  ['word','char','emb'].forEach(function(m){
   var top=r[m],ok=top[0][1]>0&&top[0][0]===e;

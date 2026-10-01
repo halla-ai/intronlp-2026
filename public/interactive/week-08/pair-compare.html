@@ -55,7 +55,7 @@ var NOTE=[
  '<b>뜻이 반대인데 세 점수가 모두 높다.</b> 단어 단위는 겹치는 낱말이 많아 0.55, 문장 임베딩도 0.52다. 바꿔 말한 같은 뜻의 쌍(공항과 시내 0.42)보다 높다. 부정을 가르는 일은 문장 임베딩에도 어렵다'];
 var KIND={'같은 뜻':'same','관련 있음':'rel','반대 뜻':'opp'};
 function render(){
- document.querySelectorAll('#ps .chip').forEach(function(b,i){b.classList.toggle('on',i===cur)});
+ document.querySelectorAll('#ps .chip').forEach(function(b,i){b.classList.toggle('on',i===cur);b.setAttribute('aria-pressed',i===cur)});
  var p=P[cur];
  document.getElementById('pair').innerHTML='A <b>'+p.a+'</b><br>B <b>'+p.b+'</b>';
  var k=document.getElementById('kind');k.textContent='사람이 보기에: '+p.kind;k.className='kind '+KIND[p.kind];

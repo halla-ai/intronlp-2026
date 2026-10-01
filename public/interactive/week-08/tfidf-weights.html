@@ -49,7 +49,7 @@ var NOTE={cnt:'횟수로 세면 열 단어가 모두 1번이다. 무엇이 이 �
  idf:'IDF는 단어가 <b>몇 개의 문서에 나오나</b>로 정한다. 수와 있다는 문서 12개 중 5개에 나와 1.77, 나머지는 이 문서에만 나와 2.87이다',
  tf:'TF-IDF는 횟수와 IDF를 곱한 뒤 문서 길이에 맞춰 줄인 값이다. <b>흔한 수와 있다는 0.21로 깎이고</b>, 이 문서에만 나오는 성산일출봉은, 일출을 같은 말은 0.34로 남는다'};
 function render(){
- ['bCnt','bIdf','bTf'].forEach(function(id){document.getElementById(id).classList.toggle('on',(id==='bCnt'&&mode==='cnt')||(id==='bIdf'&&mode==='idf')||(id==='bTf'&&mode==='tf'))});
+ ['bCnt','bIdf','bTf'].forEach(function(id){var on=(id==='bCnt'&&mode==='cnt')||(id==='bIdf'&&mode==='idf')||(id==='bTf'&&mode==='tf'),b=document.getElementById(id);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
  var idx=mode==='cnt'?1:mode==='idf'?2:3,max=mode==='cnt'?1:mode==='idf'?3:0.4;
  document.getElementById('rows').innerHTML=R.map(function(r){var v=r[idx];return '<div class="row'+(r[2]<2?' common':'')+'"><span class="w">'+r[0]+'</span><span class="bar"><i style="width:'+(v/max*100)+'%"></i></span><span class="s">'+(mode==='cnt'?v:v.toFixed(2))+'</span></div>'}).join('');
  document.getElementById('note').innerHTML=NOTE[mode];
