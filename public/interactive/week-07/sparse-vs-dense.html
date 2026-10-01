@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>희소 벡터와 밀집 벡터</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--a:#2563eb;--a-soft:rgba(37,99,235,.10);--w:#b45309;--w-soft:rgba(180,83,9,.10);--pos:#16a34a;--pos-soft:rgba(22,163,74,.12);--neg:#dc2626;--neg-soft:rgba(220,38,38,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--a:#22d3ee;--a-soft:rgba(34,211,238,.12);--w:#fbbf24;--w-soft:rgba(251,191,36,.12);--pos:#4ade80;--pos-soft:rgba(74,222,128,.14);--neg:#f87171;--neg-soft:rgba(248,113,113,.13)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.note{margin:8px 0 0;padding:8px 10px;border:1px dashed var(--border);border-radius:10px;font-size:12.5px;color:var(--muted)}
+.note b{color:var(--text)}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-bottom:10px}
+.seg button{font:inherit;font-size:12.5px;padding:4px 14px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--a-soft);color:var(--a);font-weight:600}
+.chip{font:inherit;font-size:13px;padding:3px 10px;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--text);cursor:pointer}
+.chip.on{border-color:var(--a);background:var(--a-soft);color:var(--a);font-weight:600}
+.lab{font-size:12.5px;margin:8px 0 4px}
+.lab b{color:var(--text)}
+.strip{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:4px}
+.cell{width:14px;height:22px;border-radius:3px;border:1px solid var(--border);cursor:pointer}
+.cell.dense{width:26px}
+.zero{background:var(--card)}
+.read{font-size:12.5px;color:var(--muted);min-height:20px;margin:2px 0 6px}
+.read b{color:var(--text)}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">칸에 마우스를 올리거나 눌러 보세요. 색이 진할수록 숫자가 크다(파랑 +, 주황 -)</p>
+<p class="lab"><b>6주차 동시발생 행렬의 귤을 행</b>: 42칸 중 0이 아닌 칸 4개</p>
+<div class="strip" id="s6"></div>
+<p class="read" id="r6">&nbsp;</p>
+<p class="lab"><b>7주차 Word2Vec의 고기국수 벡터</b>: 20칸 모두 0이 아니다</p>
+<div class="strip" id="s7"></div>
+<p class="read" id="r7">&nbsp;</p>
+<p class="note">6주차 행은 칸마다 이름(이웃 단어)이 있고 대부분 0이다. 7주차 벡터는 칸 수를 우리가 정하고(노트북은 20칸, 미리 학습된 벡터는 300칸) 모든 칸에 숫자가 들어간다. <b>칸 하나하나에 뜻이 붙어 있지 않고, 숫자 전체의 방향이 단어를 나타낸다</b></p>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+var W6=["가을", "갈치조림을", "감귤", "겨울", "고기국수를", "과즙이", "귤밭에서", "귤은", "귤을", "깨끗이", "노을이", "달고", "더", "따왔다", "뜨겁게", "뜨끈하게", "많다", "맑다", "먹었다", "바다가", "별이", "붉다", "뷰가", "상자를", "새별오름에서", "선물했다", "성산", "씻어", "아주", "오르면", "오름에", "우도", "있다", "잔뜩", "잔잔하다", "제주", "좋다", "포장해", "푸르다", "하늘에", "하늘이", "한라산"],R6=[0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],V7=[-0.21, 0.39, -0.1, 0.52, -0.08, -0.18, -0.06, 0.55, -0.12, -0.42, 0.2, 0.32, -0.09, -0.25, 0.76, -0.38, -0.06, -0.6, -0.28, -0.12];
+function color(v,max){if(v===0)return '';var a=Math.min(1,Math.abs(v)/max)*0.85+0.1;return (v>0?'rgba(37,99,235,':'rgba(217,119,6,')+a.toFixed(2)+')'}
+function strip(id,vals,names,dense,rid){var el=document.getElementById(id);vals.forEach(function(v,i){var d=document.createElement('div');d.className='cell'+(dense?' dense':'')+(v===0?' zero':'');d.style.background=color(v,dense?0.8:1);
+ var show=function(){document.getElementById(rid).innerHTML=(names?'<b>'+names[i]+'</b> 칸: ':(i+1)+'번째 칸: ')+'<b>'+v+'</b>'+(names?'':' (이름 없는 칸)')};d.onmouseenter=show;d.onclick=show;el.appendChild(d)})}
+strip('s6',R6,W6,false,'r6');strip('s7',V7,null,true,'r7');
+</script>
+</body>
+</html>

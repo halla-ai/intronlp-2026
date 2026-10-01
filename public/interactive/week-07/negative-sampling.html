@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>진짜 이웃과 가짜 이웃</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--a:#2563eb;--a-soft:rgba(37,99,235,.10);--w:#b45309;--w-soft:rgba(180,83,9,.10);--pos:#16a34a;--pos-soft:rgba(22,163,74,.12);--neg:#dc2626;--neg-soft:rgba(220,38,38,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--a:#22d3ee;--a-soft:rgba(34,211,238,.12);--w:#fbbf24;--w-soft:rgba(251,191,36,.12);--pos:#4ade80;--pos-soft:rgba(74,222,128,.14);--neg:#f87171;--neg-soft:rgba(248,113,113,.13)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.note{margin:8px 0 0;padding:8px 10px;border:1px dashed var(--border);border-radius:10px;font-size:12.5px;color:var(--muted)}
+.note b{color:var(--text)}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-bottom:10px}
+.seg button{font:inherit;font-size:12.5px;padding:4px 14px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--a-soft);color:var(--a);font-weight:600}
+.chip{font:inherit;font-size:13px;padding:3px 10px;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--text);cursor:pointer}
+.chip.on{border-color:var(--a);background:var(--a-soft);color:var(--a);font-weight:600}
+.pair{display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:8px;padding:5px 10px;margin-bottom:5px;font-size:13.5px;background:var(--card)}
+.pair .tag{font-size:11.5px;border-radius:999px;padding:1px 8px;margin-left:auto;white-space:nowrap}
+.pair.real .tag{background:var(--pos-soft);color:var(--pos)}
+.pair.fake .tag{background:var(--neg-soft);color:var(--neg)}
+.pair b{color:var(--w)}
+.btn{font:inherit;font-size:12.5px;padding:4px 12px;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--text);cursor:pointer;margin-bottom:8px}
+.sent{font-size:13px;color:var(--muted);margin:0 0 8px}
+.sent u{color:var(--text);text-decoration-color:var(--w);text-underline-offset:3px}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">버튼을 눌러 가짜 이웃을 다시 뽑아 보세요. 한 번의 연습에서는 진짜 하나와 가짜 다섯만 가려낸다</p>
+<p class="sent">문장: 애월 에서 <u>고기국수</u> 를 <u>먹었다</u> (창 2 안에서 고기국수의 진짜 이웃: 먹었다)</p>
+<button type="button" class="btn" id="re">가짜 다시 뽑기</button>
+<div id="pairs"></div>
+<p class="note" id="note"></p>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+var V=["가", "갈치조림", "갔다", "고기국수", "노을", "는", "를", "맛있다", "먹었다", "먹으러", "바다", "보러", "서귀포", "성산", "아름답다", "애월", "에", "에서", "오름", "옥돔구이", "우도", "의", "일출", "전복죽", "정말", "제주시", "중문", "흑돼지"],NEVER=["가", "갈치조림", "갔다", "노을", "맛있다", "바다", "보러", "아름답다", "에", "오름", "옥돔구이", "의", "일출", "전복죽", "흑돼지"];
+var seed=1;
+function rnd(){seed=(seed*1103515245+12345)%2147483648;return seed/2147483648}
+function draw(){
+ var pool=NEVER,fakes=[];
+ while(fakes.length<5){var w=pool[Math.floor(rnd()*pool.length)];if(fakes.indexOf(w)<0)fakes.push(w)}
+ var h='<div class="pair real"><b>고기국수</b> 와 먹었다<span class="tag">진짜: 점수를 올린다</span></div>';
+ fakes.forEach(function(f){h+='<div class="pair fake"><b>고기국수</b> 와 '+f+'<span class="tag">가짜: 점수를 내린다</span></div>'});
+ document.getElementById('pairs').innerHTML=h;
+ document.getElementById('note').innerHTML='단어 '+V.length+'개 중 정답 하나를 고르게 하는 대신, <b>짝 여섯 개가 진짜인지 가짜인지</b>만 가리게 한다. 이것이 <b>네거티브 샘플링</b>이다. 미리 학습된 벡터처럼 단어가 200만 개여도 한 번에 따지는 짝은 여섯 개뿐이라 빠르다. 그림은 헷갈리지 않게 고기국수와 한 번도 이웃이 된 적 없는 말만 가짜로 뽑았다. <b>실제 학습은 아무 단어나 뽑되 자주 나오는 단어를 더 자주 뽑아서</b>, 가끔은 진짜 이웃이 가짜로 뽑히기도 한다';
+}
+document.getElementById('re').onclick=draw;
+draw();
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>단어로 계산하기</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--a:#2563eb;--a-soft:rgba(37,99,235,.10);--w:#b45309;--w-soft:rgba(180,83,9,.10);--pos:#16a34a;--pos-soft:rgba(22,163,74,.12);--neg:#dc2626;--neg-soft:rgba(220,38,38,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--a:#22d3ee;--a-soft:rgba(34,211,238,.12);--w:#fbbf24;--w-soft:rgba(251,191,36,.12);--pos:#4ade80;--pos-soft:rgba(74,222,128,.14);--neg:#f87171;--neg-soft:rgba(248,113,113,.13)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.note{margin:8px 0 0;padding:8px 10px;border:1px dashed var(--border);border-radius:10px;font-size:12.5px;color:var(--muted)}
+.note b{color:var(--text)}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-bottom:10px}
+.seg button{font:inherit;font-size:12.5px;padding:4px 14px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--a-soft);color:var(--a);font-weight:600}
+.chip{font:inherit;font-size:13px;padding:3px 10px;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--text);cursor:pointer}
+.chip.on{border-color:var(--a);background:var(--a-soft);color:var(--a);font-weight:600}
+.row{display:flex;align-items:center;gap:8px;font-size:13px;margin:3px 0}
+.row .w{min-width:60px}
+.row .s{min-width:34px;text-align:right;color:var(--muted)}
+.bar{flex:1;height:8px;border-radius:999px;background:var(--card);border:1px solid var(--border);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--a)}
+.row.hit .w{color:var(--pos);font-weight:700}
+.res{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:520px){.res{grid-template-columns:1fr}}
+svg{width:100%;height:auto;border:1px solid var(--border);border-radius:10px;background:var(--card)}
+.verdict{font-size:14px;font-weight:700;margin:2px 0 6px}
+.verdict.ok{color:var(--pos)}.verdict.no{color:var(--neg)}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">계산을 골라 보세요. 화살표 그림은 개념도이고, 오른쪽 목록은 노트북 1-7과 같은 실제 결과다(입력한 세 단어는 답에서 뺀다)</p>
+<div class="seg" id="seg"></div>
+<div class="res">
+  <svg viewBox="0 0 300 190" id="svg" aria-label="벡터 연산 개념도"></svg>
+  <div><p class="verdict" id="verdict"></p><div id="rows"></div></div>
+</div>
+<p class="note" id="why"></p>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+var C={"ok1": {"label": "서울 + 일본 - 한국", "from": "한국", "to": "일본", "start": "서울", "expect": "도쿄", "top": [["도쿄", 0.63], ["東京", 0.47], ["강북", 0.46], ["교토", 0.45], ["시내", 0.44], ["마포", 0.44]], "ok": true, "why": "한국에서 일본으로 가는 화살표를 서울에 옮겼더니 <b>도쿄</b>가 1위로 나왔다. 한국과 일본은 0.68로 아주 같지는 않아서 화살표가 충분히 길고, 서울에서 도쿄까지 움직인다"}, "ok2": {"label": "도쿄 + 한국 - 일본", "from": "일본", "to": "한국", "start": "도쿄", "expect": "서울", "top": [["서울", 0.55], ["뉴욕", 0.46], ["런던", 0.43], ["파리", 0.42], ["LA", 0.41], ["東京", 0.41]], "ok": true, "why": "반대 방향도 통한다. 일본에서 한국으로 가는 화살표를 도쿄에 옮기니 <b>서울</b>이 1위다"}, "fail": {"label": "왕 + 여자 - 남자", "from": "남자", "to": "여자", "start": "왕", "expect": "여왕", "top": [["왕인", 0.56], ["국왕", 0.54], ["王", 0.54], ["왕과", 0.46], ["왕의", 0.45], ["왕자", 0.44]], "ok": false, "why": "기대한 여왕은 <b>19위</b>다. 남자와 여자는 0.88로 아주 가까워 둘의 차이로 만든 화살표가 짧다. 그래서 왕에서 조금밖에 움직이지 못하고, 왕 바로 옆의 <b>왕인, 王, 국왕처럼 왕의 다른 모양</b>(왕과 0.58~0.59)이 먼저 잡힌다. 여왕은 왕과 0.42로 그보다 멀다"}},cur='ok1';
+function arrow(x1,y1,x2,y2,col,dash){var a=Math.atan2(y2-y1,x2-x1),h=8;
+ return '<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="'+col+'" stroke-width="2.5"'+(dash?' stroke-dasharray="5 4"':'')+'/>'+
+ '<polygon points="'+x2+','+y2+' '+(x2-h*Math.cos(a-0.45))+','+(y2-h*Math.sin(a-0.45))+' '+(x2-h*Math.cos(a+0.45))+','+(y2-h*Math.sin(a+0.45))+'" fill="'+col+'"/>'}
+function dot(x,y,t,col,below){return '<circle cx="'+x+'" cy="'+y+'" r="5" fill="'+col+'"/><text x="'+(below?x-6:x+8)+'" y="'+(below?y+20:y-8)+'" font-size="13" fill="var(--text)" font-family="Pretendard">'+t+'</text>'}
+function render(){
+ var c=C[cur];
+ document.querySelectorAll('#seg button').forEach(function(b){b.classList.toggle('on',b.dataset.k===cur)});
+ var long=c.ok,dx=long?150:55,dy=long?-50:-20,ax=40,ay=140,bx=40,by=72;
+ var s=dot(ax,ay,c.from,'var(--muted)',true)+dot(ax+dx,ay+dy,c.to,'var(--muted)')+arrow(ax,ay,ax+dx-6,ay+dy+2,'var(--w)',false)+
+  dot(bx,by,c.start,'var(--muted)',true)+arrow(bx,by,bx+dx-6,by+dy+2,'var(--w)',true)+dot(bx+dx,by+dy,'?','var(--a)');
+ if(!long)s+='<text x="150" y="182" font-size="11" fill="var(--muted)" font-family="Pretendard">짧은 화살표: 출발점 근처에 머문다</text>';
+ document.getElementById('svg').innerHTML=s;
+ var v=document.getElementById('verdict');v.textContent=(c.ok?'성공: ':'실패: ')+c.label+' → 기대한 답 '+c.expect;v.className='verdict '+(c.ok?'ok':'no');
+ document.getElementById('rows').innerHTML=c.top.map(function(p,i){return '<div class="row'+(p[0]===c.expect?' hit':'')+'"><span class="w">'+(i+1)+'. '+p[0]+'</span><span class="bar"><i style="width:'+(p[1]*100)+'%"></i></span><span class="s">'+p[1].toFixed(2)+'</span></div>'}).join('');
+ document.getElementById('why').innerHTML=c.why;
+}
+Object.keys(C).forEach(function(k){var b=document.createElement('button');b.type='button';b.dataset.k=k;b.textContent=C[k].label;b.onclick=function(){cur=k;render()};document.getElementById('seg').appendChild(b)});
+render();
+</script>
+</body>
+</html>
