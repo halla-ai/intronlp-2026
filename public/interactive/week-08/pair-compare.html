@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>문장쌍 세 가지 유사도</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--a:#2563eb;--a-soft:rgba(37,99,235,.10);--w:#b45309;--w-soft:rgba(180,83,9,.10);--pos:#16a34a;--pos-soft:rgba(22,163,74,.12);--neg:#dc2626;--neg-soft:rgba(220,38,38,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--a:#22d3ee;--a-soft:rgba(34,211,238,.12);--w:#fbbf24;--w-soft:rgba(251,191,36,.12);--pos:#4ade80;--pos-soft:rgba(74,222,128,.14);--neg:#f87171;--neg-soft:rgba(248,113,113,.13)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.note{margin:8px 0 0;padding:8px 10px;border:1px dashed var(--border);border-radius:10px;font-size:12.5px;color:var(--muted)}
+.note b{color:var(--text)}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-bottom:10px}
+.seg button{font:inherit;font-size:12.5px;padding:4px 14px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--a-soft);color:var(--a);font-weight:600}
+.chip{font:inherit;font-size:13px;padding:3px 10px;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--text);cursor:pointer}
+.chip.on{border-color:var(--a);background:var(--a-soft);color:var(--a);font-weight:600}
+.pair{font-size:14px;margin:0 0 4px}
+.pair b{color:var(--a)}
+.kind{display:inline-block;font-size:11.5px;border-radius:999px;padding:0 8px;margin-bottom:8px}
+.kind.same{background:var(--pos-soft);color:var(--pos)}.kind.rel{background:var(--a-soft);color:var(--a)}.kind.opp{background:var(--neg-soft);color:var(--neg)}
+.row{display:flex;align-items:center;gap:8px;font-size:13px;margin:4px 0}
+.row .w{min-width:110px}
+.bar{flex:1;height:12px;border-radius:999px;background:var(--card);border:1px solid var(--border);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--a);transition:width .35s}
+.row .s{min-width:40px;text-align:right}
+.ps{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">문장쌍을 골라 보세요. 노트북 TODO 셀과 같은 방법으로 잰 세 가지 유사도다</p>
+<div class="ps" id="ps"></div>
+<p class="pair" id="pair"></p>
+<span class="kind" id="kind"></span>
+<div id="rows"></div>
+<p class="note" id="note"></p>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+var P=[{"a": "우도 가는 배는 어디서 타요", "b": "우도행 배편 타는 곳", "kind": "같은 뜻", "word": 0.0, "char": 0.17, "emb": 0.91}, {"a": "공항에서 시내까지 어떻게 가나요", "b": "제주시로 가는 교통편을 알려 주세요", "kind": "같은 뜻", "word": 0.0, "char": 0.04, "emb": 0.42}, {"a": "한라산에 오르고 싶다", "b": "한라산 등반 예약 방법", "kind": "관련 있음", "word": 0.0, "char": 0.16, "emb": 0.69}, {"a": "고기국수 맛집 추천", "b": "고기국수 맛있는 식당", "kind": "같은 뜻", "word": 0.27, "char": 0.37, "emb": 0.43}, {"a": "오늘 날씨가 좋다", "b": "오늘 날씨가 좋지 않다", "kind": "반대 뜻", "word": 0.55, "char": 0.66, "emb": 0.52}],cur=0;
+var NOTE=[
+ '같은 뜻인데 겹치는 낱말이 없다(배는 / 배편). <b>단어 단위로는 0, 문장 단위로는 0.91</b>이다. 단어 단위와 문장 단위가 가장 크게 갈리는 쌍이다',
+ '같은 뜻인데 문장 임베딩도 0.42에 그친다. 사람은 제주 공항에서 시내로 가는 길이 곧 제주시로 가는 교통편이라는 것을 알지만, <b>두 문장에는 그 연결이 드러나 있지 않다</b>',
+ '뜻이 같지는 않지만 관련이 있다(오르고 싶다 / 등반 예약). 문장 임베딩은 0.69로 관련을 잡는다',
+ '고기국수가 겹쳐 단어 단위로도 0.27이다. 그런데 문장 임베딩은 0.43으로 생각보다 낮다. 문장 임베딩도 늘 사람처럼 판단하지는 않는다',
+ '<b>뜻이 반대인데 세 점수가 모두 높다.</b> 단어 단위는 겹치는 낱말이 많아 0.55, 문장 임베딩도 0.52다. 바꿔 말한 같은 뜻의 쌍(공항과 시내 0.42)보다 높다. 부정을 가르는 일은 문장 임베딩에도 어렵다'];
+var KIND={'같은 뜻':'same','관련 있음':'rel','반대 뜻':'opp'};
+function render(){
+ document.querySelectorAll('#ps .chip').forEach(function(b,i){b.classList.toggle('on',i===cur)});
+ var p=P[cur];
+ document.getElementById('pair').innerHTML='A <b>'+p.a+'</b><br>B <b>'+p.b+'</b>';
+ var k=document.getElementById('kind');k.textContent='사람이 보기에: '+p.kind;k.className='kind '+KIND[p.kind];
+ document.getElementById('rows').innerHTML=[['단어 TF-IDF',p.word],['글자 조각 TF-IDF',p.char],['문장 임베딩',p.emb]].map(function(r){return '<div class="row"><span class="w">'+r[0]+'</span><span class="bar"><i style="width:'+(r[1]*100)+'%"></i></span><span class="s">'+r[1].toFixed(2)+'</span></div>'}).join('');
+ document.getElementById('note').innerHTML=NOTE[cur];
+}
+P.forEach(function(p,i){var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=(i+1)+'. '+p.kind;b.onclick=function(){cur=i;render()};document.getElementById('ps').appendChild(b)});
+render();
+</script>
+</body>
+</html>
