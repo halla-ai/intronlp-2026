@@ -11,6 +11,7 @@ description: 실습에 쓰는 공개 데이터
 | [제주데이터허브](https://www.jejudatahub.net) | 제주 민간 개방 포털 |
 | [제주 관광 빅데이터 서비스 플랫폼](https://data.ijto.or.kr) | 관광 분야 특화 |
 | [공공데이터포털](https://www.data.go.kr) | 제주 행정정보 |
+| [fastText 한국어 단어 벡터](https://fasttext.cc/docs/en/crawl-vectors.html) (cc.ko.300) | 웹 문서로 미리 학습된 단어 벡터. CC BY-SA 3.0. 7주차 노트북이 앞부분만 내려받는다 |
 
 ## 알아둘 것
 

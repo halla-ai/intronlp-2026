@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>이웃 맞히기 연습</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--a:#2563eb;--a-soft:rgba(37,99,235,.10);--w:#b45309;--w-soft:rgba(180,83,9,.10);--pos:#16a34a;--pos-soft:rgba(22,163,74,.12);--neg:#dc2626;--neg-soft:rgba(220,38,38,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--a:#22d3ee;--a-soft:rgba(34,211,238,.12);--w:#fbbf24;--w-soft:rgba(251,191,36,.12);--pos:#4ade80;--pos-soft:rgba(74,222,128,.14);--neg:#f87171;--neg-soft:rgba(248,113,113,.13)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.note{margin:8px 0 0;padding:8px 10px;border:1px dashed var(--border);border-radius:10px;font-size:12.5px;color:var(--muted)}
+.note b{color:var(--text)}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-bottom:10px}
+.seg button{font:inherit;font-size:12.5px;padding:4px 14px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--a-soft);color:var(--a);font-weight:600}
+.chip{font:inherit;font-size:13px;padding:3px 10px;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--text);cursor:pointer}
+.chip.on{border-color:var(--a);background:var(--a-soft);color:var(--a);font-weight:600}
+.toks{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.tok{font:inherit;font-size:15px;padding:6px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);cursor:pointer}
+.tok.center{background:var(--w-soft);border-color:var(--w);color:var(--w);font-weight:700}
+.tok.ctx{background:var(--a-soft);border-color:var(--a)}
+.tok.out{opacity:.45}
+.qs{display:flex;flex-direction:column;gap:5px}
+.q{border:1px solid var(--border);border-radius:8px;padding:6px 10px;font-size:13.5px;background:var(--card)}
+.q b{color:var(--w)}
+.q i{font-style:normal;color:var(--a);font-weight:600}
+.count{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">단어를 눌러 가운데 단어를 바꾸고, 방식을 바꿔 보세요. 창 2 안의 이웃으로 어떤 맞히기 문제가 만들어지는지 보인다</p>
+<div class="seg"><button type="button" id="mSg" class="on">Skip-gram</button><button type="button" id="mCb">CBOW</button></div>
+<div class="toks" id="toks"></div>
+<div class="qs" id="qs"></div>
+<p class="count" id="count"></p>
+<p class="note" id="note"></p>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+var T=['애월','에서','고기국수','를','먹었다'],c=2,mode='sg',W=2;
+function ctx(){var r=[];for(var j=Math.max(0,c-W);j<=Math.min(T.length-1,c+W);j++)if(j!==c)r.push(j);return r}
+function render(){
+ document.getElementById('mSg').classList.toggle('on',mode==='sg');
+ document.getElementById('mCb').classList.toggle('on',mode==='cb');
+ document.getElementById('mSg').setAttribute('aria-pressed',mode==='sg');
+ document.getElementById('mCb').setAttribute('aria-pressed',mode==='cb');
+ var cx=ctx(),el=document.getElementById('toks');el.innerHTML='';
+ T.forEach(function(t,j){var b=document.createElement('button');b.type='button';b.textContent=t;
+  b.className='tok '+(j===c?'center':cx.indexOf(j)>-1?'ctx':'out');b.setAttribute('aria-pressed',j===c);b.onclick=function(){c=j;render()};el.appendChild(b)});
+ var qs=document.getElementById('qs'),h='';
+ if(mode==='sg'){
+  cx.forEach(function(j){h+='<div class="q">가운데 <b>'+T[c]+'</b> 를 보고 이웃 하나를 맞힌다 → 정답 <i>'+T[j]+'</i></div>'});
+  document.getElementById('count').textContent='이 자리에서 만들어지는 문제: '+cx.length+'개 (이웃마다 하나씩)';
+  document.getElementById('note').innerHTML='<b>Skip-gram</b>은 가운데 단어 하나로 주변 단어를 하나씩 맞힌다. 이웃이 많을수록 문제가 많아져, 드물게 나오는 단어도 연습 기회를 많이 얻는다';
+ }else{
+  var masked=T.map(function(t,j){return j===c?'<b>___</b>':cx.indexOf(j)>-1?t:'<span style="opacity:.4">'+t+'</span>'}).join(' ');
+  h='<div class="q">'+masked+' → 빈칸 정답 <i>'+T[c]+'</i></div>';
+  document.getElementById('count').textContent='이 자리에서 만들어지는 문제: 1개 (주변을 묶어서 하나)';
+  document.getElementById('note').innerHTML='<b>CBOW</b>는 주변 단어를 한데 묶어 가운데 빈칸을 맞힌다. 빈칸 채우기와 같은 모양이다. 문제 수가 적어 학습이 빠르다';
+ }
+ qs.innerHTML=h;
+}
+document.getElementById('mSg').onclick=function(){mode='sg';render()};
+document.getElementById('mCb').onclick=function(){mode='cb';render()};
+render();
+</script>
+</body>
+</html>
