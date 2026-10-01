@@ -55,7 +55,7 @@ function arrow(x1,y1,x2,y2,col,dash){var a=Math.atan2(y2-y1,x2-x1),h=8;
 function dot(x,y,t,col,below){return '<circle cx="'+x+'" cy="'+y+'" r="5" fill="'+col+'"/><text x="'+(below?x-6:x+8)+'" y="'+(below?y+20:y-8)+'" font-size="13" fill="var(--text)" font-family="Pretendard">'+t+'</text>'}
 function render(){
  var c=C[cur];
- document.querySelectorAll('#seg button').forEach(function(b){b.classList.toggle('on',b.dataset.k===cur)});
+ document.querySelectorAll('#seg button').forEach(function(b){b.classList.toggle('on',b.dataset.k===cur);b.setAttribute('aria-pressed',b.dataset.k===cur)});
  var long=c.ok,dx=long?150:55,dy=long?-50:-20,ax=40,ay=140,bx=40,by=72;
  var s=dot(ax,ay,c.from,'var(--muted)',true)+dot(ax+dx,ay+dy,c.to,'var(--muted)')+arrow(ax,ay,ax+dx-6,ay+dy+2,'var(--w)',false)+
   dot(bx,by,c.start,'var(--muted)',true)+arrow(bx,by,bx+dx-6,by+dy+2,'var(--w)',true)+dot(bx+dx,by+dy,'?','var(--a)');

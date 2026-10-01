@@ -22,7 +22,8 @@ body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2
 .lab{font-size:12.5px;margin:8px 0 4px}
 .lab b{color:var(--text)}
 .strip{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:4px}
-.cell{width:14px;height:22px;border-radius:3px;border:1px solid var(--border);cursor:pointer}
+.cell{width:14px;height:22px;padding:0;border-radius:3px;border:1px solid var(--border);cursor:pointer}
+.cell:focus-visible{outline:2px solid var(--a);outline-offset:1px}
 .cell.dense{width:26px}
 .zero{background:var(--card)}
 .read{font-size:12.5px;color:var(--muted);min-height:20px;margin:2px 0 6px}
@@ -33,7 +34,7 @@ body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2
 <script>
 (function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
 </script>
-<p class="cap">칸에 마우스를 올리거나 눌러 보세요. 색이 진할수록 숫자가 크다(파랑 +, 주황 -)</p>
+<p class="cap">칸에 마우스를 올리거나, 누르거나, Tab 키로 옮겨 보세요. 색이 진할수록 0에서 멀다(파랑은 +, 주황은 -)</p>
 <p class="lab"><b>6주차 동시발생 행렬의 귤을 행</b>: 42칸 중 0이 아닌 칸 4개</p>
 <div class="strip" id="s6"></div>
 <p class="read" id="r6">&nbsp;</p>
@@ -48,8 +49,8 @@ try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',functi
 parent.postMessage({type:'figure-ready'},'*');
 var W6=["가을", "갈치조림을", "감귤", "겨울", "고기국수를", "과즙이", "귤밭에서", "귤은", "귤을", "깨끗이", "노을이", "달고", "더", "따왔다", "뜨겁게", "뜨끈하게", "많다", "맑다", "먹었다", "바다가", "별이", "붉다", "뷰가", "상자를", "새별오름에서", "선물했다", "성산", "씻어", "아주", "오르면", "오름에", "우도", "있다", "잔뜩", "잔잔하다", "제주", "좋다", "포장해", "푸르다", "하늘에", "하늘이", "한라산"],R6=[0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],V7=[-0.21, 0.39, -0.1, 0.52, -0.08, -0.18, -0.06, 0.55, -0.12, -0.42, 0.2, 0.32, -0.09, -0.25, 0.76, -0.38, -0.06, -0.6, -0.28, -0.12];
 function color(v,max){if(v===0)return '';var a=Math.min(1,Math.abs(v)/max)*0.85+0.1;return (v>0?'rgba(37,99,235,':'rgba(217,119,6,')+a.toFixed(2)+')'}
-function strip(id,vals,names,dense,rid){var el=document.getElementById(id);vals.forEach(function(v,i){var d=document.createElement('div');d.className='cell'+(dense?' dense':'')+(v===0?' zero':'');d.style.background=color(v,dense?0.8:1);
- var show=function(){document.getElementById(rid).innerHTML=(names?'<b>'+names[i]+'</b> 칸: ':(i+1)+'번째 칸: ')+'<b>'+v+'</b>'+(names?'':' (이름 없는 칸)')};d.onmouseenter=show;d.onclick=show;el.appendChild(d)})}
+function strip(id,vals,names,dense,rid){var el=document.getElementById(id);vals.forEach(function(v,i){var d=document.createElement('button');d.type='button';d.setAttribute('aria-label',(names?names[i]+' 칸 ':(i+1)+'번째 칸 ')+v);d.className='cell'+(dense?' dense':'')+(v===0?' zero':'');d.style.background=color(v,dense?0.8:1);
+ var show=function(){document.getElementById(rid).innerHTML=(names?'<b>'+names[i]+'</b> 칸: ':(i+1)+'번째 칸: ')+'<b>'+v+'</b>'+(names?'':' (이름 없는 칸)')};d.onmouseenter=show;d.onclick=show;d.onfocus=show;el.appendChild(d)})}
 strip('s6',R6,W6,false,'r6');strip('s7',V7,null,true,'r7');
 </script>
 </body>

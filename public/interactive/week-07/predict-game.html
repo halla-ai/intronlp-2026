@@ -51,9 +51,11 @@ function ctx(){var r=[];for(var j=Math.max(0,c-W);j<=Math.min(T.length-1,c+W);j+
 function render(){
  document.getElementById('mSg').classList.toggle('on',mode==='sg');
  document.getElementById('mCb').classList.toggle('on',mode==='cb');
+ document.getElementById('mSg').setAttribute('aria-pressed',mode==='sg');
+ document.getElementById('mCb').setAttribute('aria-pressed',mode==='cb');
  var cx=ctx(),el=document.getElementById('toks');el.innerHTML='';
  T.forEach(function(t,j){var b=document.createElement('button');b.type='button';b.textContent=t;
-  b.className='tok '+(j===c?'center':cx.indexOf(j)>-1?'ctx':'out');b.onclick=function(){c=j;render()};el.appendChild(b)});
+  b.className='tok '+(j===c?'center':cx.indexOf(j)>-1?'ctx':'out');b.setAttribute('aria-pressed',j===c);b.onclick=function(){c=j;render()};el.appendChild(b)});
  var qs=document.getElementById('qs'),h='';
  if(mode==='sg'){
   cx.forEach(function(j){h+='<div class="q">가운데 <b>'+T[c]+'</b> 를 보고 이웃 하나를 맞힌다 → 정답 <i>'+T[j]+'</i></div>'});
