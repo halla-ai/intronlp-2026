@@ -129,6 +129,8 @@ cells = [
                 print("  모든 문서가 0점이다. 질문의 단어가 문서에 하나도 없다")
                 return
             for i in ranked:
+                if scores[i] == 0:
+                    break  # 0점 문서는 겹치는 단어가 없어 순서에 뜻이 없다
                 print(f"  {scores[i]:.2f}  {i + 1:2d}. {docs[i]}")
 
         search("우도에 가는 배를 타려면", word_tfidf, doc_vectors)
