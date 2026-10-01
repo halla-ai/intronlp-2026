@@ -49,7 +49,7 @@ function render(){
  document.querySelectorAll('.chip').forEach(function(b){b.classList.toggle('on',b.dataset.w===cur)});
  var r=document.getElementById('rows');
  if(NB[cur]){r.innerHTML=NB[cur].map(function(p){return '<div class="row"><span class="w">'+p[0]+'</span><span class="bar"><i style="width:'+(p[1]*100)+'%"></i></span><span class="s">'+p[1].toFixed(2)+'</span></div>'}).join('')}
- else{r.innerHTML='<div class="row">'+cur+' 의 벡터가 없다</div>'}
+ else{r.innerHTML='<div class="row">'+cur+' 은(는) 노트북이 받은 단어에 없다</div>'}
  document.getElementById('why').innerHTML=WHY[cur];
 }
 var gEl=document.getElementById('groups');

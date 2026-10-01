@@ -220,7 +220,7 @@ cells = [
         from gensim.models import KeyedVectors
 
         names, rows = [], []
-        with urllib.request.urlopen(URL) as response, gzip.GzipFile(fileobj=response) as stream:
+        with urllib.request.urlopen(URL, timeout=60) as response, gzip.GzipFile(fileobj=response) as stream:
             stream.readline()  # 첫 줄은 단어 수와 칸 수
             for rank in range(1, SCAN + 1):
                 word, numbers = stream.readline().decode("utf-8", "replace").rstrip().split(" ", 1)
