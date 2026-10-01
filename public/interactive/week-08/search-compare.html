@@ -67,7 +67,7 @@ function render(){
   var top=r[m],ok=top[0][1]>0&&top[0][0]===e;
   h+='<div class="col"><h4>'+NAMES[m]+'<span class="v '+(ok?'ok':'no')+'">'+(ok?'정답':'오답')+'</span></h4>';
   if(top[0][1]===0){h+='<div class="hit"><span class="t">모든 문서가 0점: 찾지 못함</span></div>'}
-  else top.forEach(function(t){h+='<div class="hit'+(t[0]===e?' exp':'')+'"><span class="n">'+t[0]+'번</span><span class="t">'+DOCS[t[0]-1]+'</span><span class="s">'+t[1].toFixed(2)+'</span></div>'});
+  else top.filter(function(t){return t[1]>0}).forEach(function(t){h+='<div class="hit'+(t[0]===e?' exp':'')+'"><span class="n">'+t[0]+'번</span><span class="t">'+DOCS[t[0]-1]+'</span><span class="s">'+t[1].toFixed(2)+'</span></div>'});
   h+='</div>';
  });
  document.getElementById('cols').innerHTML=h;
