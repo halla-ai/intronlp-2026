@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TF-IDF가 흔한 단어를 깎는다</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--a:#2563eb;--a-soft:rgba(37,99,235,.10);--w:#b45309;--w-soft:rgba(180,83,9,.10);--pos:#16a34a;--pos-soft:rgba(22,163,74,.12);--neg:#dc2626;--neg-soft:rgba(220,38,38,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--a:#22d3ee;--a-soft:rgba(34,211,238,.12);--w:#fbbf24;--w-soft:rgba(251,191,36,.12);--pos:#4ade80;--pos-soft:rgba(74,222,128,.14);--neg:#f87171;--neg-soft:rgba(248,113,113,.13)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.note{margin:8px 0 0;padding:8px 10px;border:1px dashed var(--border);border-radius:10px;font-size:12.5px;color:var(--muted)}
+.note b{color:var(--text)}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-bottom:10px}
+.seg button{font:inherit;font-size:12.5px;padding:4px 14px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--a-soft);color:var(--a);font-weight:600}
+.chip{font:inherit;font-size:13px;padding:3px 10px;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--text);cursor:pointer}
+.chip.on{border-color:var(--a);background:var(--a-soft);color:var(--a);font-weight:600}
+.row{display:flex;align-items:center;gap:8px;font-size:13px;margin:3px 0}
+.row .w{min-width:96px}
+.bar{flex:1;height:10px;border-radius:999px;background:var(--card);border:1px solid var(--border);overflow:hidden}
+.bar i{display:block;height:100%;transition:width .35s}
+.row .s{min-width:40px;text-align:right;color:var(--muted)}
+.row.common .w{color:var(--w);font-weight:700}
+.row.common .bar i{background:var(--w)}
+.row .bar i{background:var(--a)}
+.doc{font-size:13px;margin:0 0 8px;padding:6px 10px;border:1px solid var(--border);border-radius:8px;background:var(--card)}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">버튼을 바꿔 보세요. 같은 문서를 횟수로 세면 모든 단어가 같지만, TF-IDF로 바꾸면 여러 문서에 흔한 단어가 깎인다</p>
+<div class="seg"><button type="button" id="bCnt">횟수</button><button type="button" id="bIdf">IDF</button><button type="button" id="bTf" class="on">TF-IDF</button></div>
+<p class="doc">2번 문서: 성산일출봉은 해가 뜨기 전에 올라가면 정상에서 일출을 볼 수 있다</p>
+<div id="rows"></div>
+<p class="note" id="note"></p>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+var R=[["뜨기", 1, 2.87, 0.34], ["정상에서", 1, 2.87, 0.34], ["성산일출봉은", 1, 2.87, 0.34], ["볼", 1, 2.87, 0.34], ["올라가면", 1, 2.87, 0.34], ["일출을", 1, 2.87, 0.34], ["해가", 1, 2.87, 0.34], ["전에", 1, 2.87, 0.34], ["있다", 1, 1.77, 0.21], ["수", 1, 1.77, 0.21]],mode='tf';
+var NOTE={cnt:'횟수로 세면 열 단어가 모두 1번이다. 무엇이 이 문서의 특징인지 알 수 없다',
+ idf:'IDF는 단어가 <b>몇 개의 문서에 나오나</b>로 정한다. 수와 있다는 문서 12개 중 5개에 나와 1.77, 나머지는 이 문서에만 나와 2.87이다',
+ tf:'TF-IDF는 횟수와 IDF를 곱한 뒤 문서 길이에 맞춰 줄인 값이다. <b>흔한 수와 있다는 0.21로 깎이고</b>, 이 문서에만 나오는 성산일출봉은, 일출을 같은 말은 0.34로 남는다'};
+function render(){
+ ['bCnt','bIdf','bTf'].forEach(function(id){var on=(id==='bCnt'&&mode==='cnt')||(id==='bIdf'&&mode==='idf')||(id==='bTf'&&mode==='tf'),b=document.getElementById(id);b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)});
+ var idx=mode==='cnt'?1:mode==='idf'?2:3,max=mode==='cnt'?1:mode==='idf'?3:0.4;
+ document.getElementById('rows').innerHTML=R.map(function(r){var v=r[idx];return '<div class="row'+(r[2]<2?' common':'')+'"><span class="w">'+r[0]+'</span><span class="bar"><i style="width:'+(v/max*100)+'%"></i></span><span class="s">'+(mode==='cnt'?v:v.toFixed(2))+'</span></div>'}).join('');
+ document.getElementById('note').innerHTML=NOTE[mode];
+}
+document.getElementById('bCnt').onclick=function(){mode='cnt';render()};
+document.getElementById('bIdf').onclick=function(){mode='idf';render()};
+document.getElementById('bTf').onclick=function(){mode='tf';render()};
+render();
+</script>
+</body>
+</html>

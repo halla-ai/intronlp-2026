@@ -28,7 +28,7 @@ TODO를 건드리지 않아도 노트북은 처음부터 끝까지 돌아간다.
 | 5 | 통계적 텍스트 분류와 문서 분류 | [Colab](https://colab.research.google.com/github/halla-ai/intronlp-2026/blob/main/notebooks/week-05.ipynb) |
 | 6 | 단어의 의미 표현, 분포적 통계와 임베딩 기초 | [Colab](https://colab.research.google.com/github/halla-ai/intronlp-2026/blob/main/notebooks/week-06.ipynb) |
 | 7 | 신경망 기반 단어 임베딩, Word2Vec | [Colab](https://colab.research.google.com/github/halla-ai/intronlp-2026/blob/main/notebooks/week-07.ipynb) |
-| 8 | 문장 임베딩과 텍스트 유사도 | 준비 중 |
+| 8 | 문장 임베딩과 텍스트 유사도 | [Colab](https://colab.research.google.com/github/halla-ai/intronlp-2026/blob/main/notebooks/week-08.ipynb) |
 | 9 | 시퀀스 모델링과 트랜스포머의 등장 | 준비 중 |
 | 10 | 사전학습 언어모델, BERT와 GPT | 준비 중 |
 | 11 | 대규모 언어모델(LLM)의 시대, 특징과 활용 | 준비 중 |
