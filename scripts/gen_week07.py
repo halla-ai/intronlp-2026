@@ -115,7 +115,7 @@ cells = [
         Word2Vec은 **이웃 단어를 맞히는 연습**을 되풀이하며 단어마다 숫자 목록(벡터)을 만듭니다. 6주차의 동시발생 행렬 행과 달리, 칸 수를 우리가 정하고(여기서는 20칸) 대부분의 칸이 0이 아닙니다.
 
         - `sg=1` 은 Skip-gram입니다. 가운데 단어로 주변 단어를 맞힙니다. `sg=0` 이면 CBOW로, 주변 단어로 가운데 단어를 맞힙니다
-        - `window=2` 는 6주차와 같은 창입니다. 양옆 두 칸을 이웃으로 봅니다
+        - `window=2` 는 6주차와 같은 창으로, 양옆 **최대** 두 칸을 이웃으로 봅니다. 학습 중에는 단어마다 창을 1~2칸 사이에서 무작위로 줄여, 가까운 이웃을 더 자주 봅니다
         - `negative=5` 는 진짜 이웃 하나마다 가짜 이웃 다섯 개를 섞어 "진짜인지 가짜인지" 가리는 연습을 시킨다는 뜻입니다(네거티브 샘플링)
     """),
     code("""
@@ -174,22 +174,35 @@ cells = [
         words = [w for ws in groups.values() for w in ws]
         points = to_2d(np.array([skipgram.wv[w] for w in words]))
 
-        fig, ax = plt.subplots(figsize=(7, 5))
+        fig, ax = plt.subplots(figsize=(8, 6))
         start = 0
+        spans = []
         for name, ws in groups.items():
             xy = points[start:start + len(ws)]
             ax.scatter(xy[:, 0], xy[:, 1], label=name, s=60)
-            for (x, y), w in zip(xy, ws):
-                ax.annotate(w, (x, y), textcoords="offset points", xytext=(5, 5), fontsize=11)
+            spans.append((ws, xy))
             start += len(ws)
-        ax.legend()
+
+        # 무리 안의 점이 거의 겹쳐서, 이름은 무리 옆에 한 줄씩 세우고 선으로 잇는다
+        x0, x1 = ax.get_xlim()
+        y0, y1 = ax.get_ylim()
+        for ws, xy in spans:
+            fx = (xy[:, 0].mean() - x0) / (x1 - x0)
+            fy = min(max((xy[:, 1].mean() - y0) / (y1 - y0), 0.2), 0.8)
+            side = -1 if fx > 0.6 else 1
+            for rank, k in enumerate(np.argsort(-xy[:, 1])):
+                ty = fy + (len(ws) / 2 - rank - 0.5) * 0.05
+                ax.annotate(ws[k], xy[k], xytext=(fx + side * 0.16, ty), textcoords="axes fraction",
+                            fontsize=11, va="center", ha="left" if side > 0 else "right",
+                            arrowprops=dict(arrowstyle="-", color="gray", lw=0.6))
+        ax.legend(loc="lower center")
         ax.set_title("작은 말뭉치로 학습한 단어 지도")
         plt.show()
     """),
     md("""
         ### 1-5. 큰 말뭉치로 미리 학습된 벡터 불러오기
 
-        직접 만든 말뭉치는 작고 틀에 박혀 있습니다. 이번에는 웹 문서로 미리 학습된 **공개 한국어 단어 벡터**(fastText, 단어 200만 개, 300칸)를 씁니다. 전부 받으면 너무 크므로 **자주 나오는 단어 앞 10만 개**만 받고, 그 뒤에서는 아래 목록의 제주 단어만 골라 담습니다. 1분 안팎 걸립니다.
+        직접 만든 말뭉치는 작고 틀에 박혀 있습니다. 이번에는 웹 문서로 미리 학습된 **공개 한국어 단어 벡터**(fastText cc.ko.300, 단어 200만 개, 300칸, CC BY-SA 3.0)를 씁니다. 전부 받으면 너무 크므로 **자주 나오는 단어 앞 10만 개**만 받고, 그 뒤에서는 아래 목록의 제주 단어만 골라 담습니다. 1분 안팎 걸립니다.
 
         목록에 넣었는데도 벡터가 없다고 나오는 단어가 있습니다. 앞쪽 60만 단어 안에 한 번도 들지 못할 만큼 드물다는 뜻입니다.
     """),
