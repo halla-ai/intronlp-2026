@@ -18,7 +18,8 @@ md('''
 - 목표: 실제 사전학습 모델의 어텐션 가중치와 사람이 고른 참조 위치 비교
 - 실행: CPU만 사용, 기본값 그대로 모두 실행 가능
 - 수정: 선택 활동으로 2의 TODO 한 지점만 변경, 필수 코드 작성 없음
-- 문장: 제주를 배경으로 작성한 설명용 예시, 관광·행정 운영 정보 아님
+- 교육용 모형 문장: 제주를 배경으로 작성한 설명용 예시
+- 실제 모델 문장: 제주관광공사 공개 한라산 페이지의 짧은 원문에 제목 추가 및 빈칸 치환, 운영 정보 검증 용도 아님
 - 모델: `prajjwal1/bert-tiny`, MIT. 영어 사전학습 BERT 계열의 작은 모델, 한국어 이해 능력 평가에 사용하지 않음
 - 출처: https://huggingface.co/prajjwal1/bert-tiny
 '''),
@@ -106,11 +107,15 @@ except Exception as error:
 md('''
 ## 1-3. 실제 모델의 참고 비중과 빈칸 후보
 
-영문 설명용 문장: '민지는 제주에서 우산을 샀다. 그것은 빨갛다.'
+제주관광공사 공개 원문 기반 입력. 출처: [Hallasan](https://www.visitjeju.net/en/detail/view?contentsid=CONT_000000000500685), 열람일 2026-10-11.
+
+원문 짧은 발췌: 'At 1,950 m above sea level, it is the highest mountain in South Korea.'
+
+페이지 제목 `Hallasan.`을 앞에 붙이고 `highest`를 `[MASK]`로 치환. `it`이 가리키는 한라산과 실제 참고 비중 비교. 교육용 모형의 우산 문장과 출처·가중치 구분.
 
 - 마지막 층의 첫 헤드 관찰, 헤드 평균 아님
 - 특수 토큰과 WordPiece 조각도 그림에 포함
-- `it` 행에서 큰 가중치 위치와 사람이 고른 `umbrella` 비교
+- `it` 행에서 큰 가중치 위치와 사람이 고른 `Hallasan`의 토큰 위치 비교
 - 가중치는 정답 확률이나 원인의 증명 아님. 빈칸 확률도 실제 사실의 확률 아님
 '''),
 code('''
@@ -145,24 +150,24 @@ def inspect_text(text):
     for value, index in zip(values.tolist(), indices.tolist()):
         print(tokenizer.convert_ids_to_tokens(index), f"{value:.3f}")
 
-baseline = "Minji bought an umbrella in Jeju. It is [MASK]."
+baseline = "Hallasan. At 1,950 m above sea level, it is the [MASK] mountain in South Korea."
 inspect_text(baseline)
 '''),
 md('''
 ## 2. 한 지점만 바꾸기
 
-`umbrella`를 `bag`로 바꾸거나, 앞 문장에 설명을 추가. 영어 문장 사용, `[MASK]` 한 개 유지. 앞 문장을 바꾸었을 때 빈칸 후보와 `it` 행의 참고 비중이 어떻게 바뀌는지 관찰. 결과가 기대와 달라도 오류와 구별.
+기본값은 같은 공개 원문의 `mountain`을 `[MASK]`로 치환한 입력. TODO를 그대로 두어도 `highest`와 `mountain`을 가린 두 입력의 후보 비교 가능. 선택적으로 기존 입력 문장 한 곳만 교체. 영어 문장 사용, `[MASK]` 한 개 유지. 빈칸 위치와 문맥에 따라 후보 및 `it` 행의 참고 비중이 어떻게 달라지는지 관찰. 결과가 기대와 달라도 오류와 구별.
 '''),
 code('''
 # TODO: 아래 문장 한 곳만 변경
-student_text = "Minji bought a bag in Jeju. It is [MASK]."
+student_text = "Hallasan. At 1,950 m above sea level, it is the highest [MASK] in South Korea."
 
 inspect_text(student_text)
 '''),
 md('''
 ## 3. 확인 질문
 
-1. 사람이 고른 대명사의 참조 위치와 실제 모델의 `it` 행 상위 위치 비교. 특수 토큰에 큰 비중이 나타나는지도 확인.
+1. 사람이 고른 대명사 `it`의 참조 대상 `Hallasan`의 토큰 위치와 실제 모델의 `it` 행 상위 위치 비교. 특수 토큰에 큰 비중이 나타나는지도 확인.
 2. 원문과 수정 문장의 빈칸 후보 5개 비교. 확률을 사실의 확률로 읽을 수 없는 이유 설명.
 3. 교육용 모형과 실제 모델 결과의 차이 설명. 실제 모델 사용 불가 시 오류 유형과 건너뛴 결과 기록.
 4. 긴 제주 행정 안내에서 대상·기한·예외가 떨어져 있을 때 놓칠 수 있는 조건 하나 서술. 실제 정보는 reference/data.md의 공식 출처에서 확인.
