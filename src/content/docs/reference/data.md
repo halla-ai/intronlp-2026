@@ -11,7 +11,7 @@ description: 실습에 쓰는 공개 데이터
 | [제주데이터허브](https://www.jejudatahub.net) | 제주 민간 개방 포털 |
 | [제주 관광 빅데이터 서비스 플랫폼](https://data.ijto.or.kr) | 관광 분야 특화 |
 | [공공데이터포털](https://www.data.go.kr) | 제주 행정정보 |
-| [제주학연구센터 제주어 길라잡이](https://archive.jst.re.kr/upload/pdf/RC00094038.pdf) | 14주차 공개 어휘 대응 3쌍. 인쇄면 109쪽의 모살/모래, 바당/바다, 굴무기/느티나무. 2026-10-11 색인 본문의 해당 단락 확인, 원본 PDF 서버 타임아웃으로 전체 문서 직접 열람은 미확인 |
+| [제주학연구센터 제주어 길라잡이](https://archive.jst.re.kr/upload/pdf/RC00094038.pdf) | 14주차 공개 어휘 대응 3쌍. 인쇄면 109쪽의 모살/모래, 바당/바다, 굴무기/느티나무. 2026-10-11 색인 본문의 해당 단락 확인, 원본 URL 직접 접속 시도가 타임아웃되어 전체 문서 열람은 미확인 |
 | [제주관광공사 VisitJeju 한라산 안내](https://www.visitjeju.net/en/detail/view?contentsid=CONT_000000000500685) | 9주차 영어 안내문의 짧은 발췌. 페이지 제목을 붙이고 한 토큰을 가려 문맥 관찰. 2026-10-11 열람 |
 | [제주관광공사 VisitJeju 올레 6코스 안내](https://m.visitjeju.net/en/detail/view?contentsid=CNTS_000000000020298) | 10주차 영어 안내문의 첫 절 발췌. 감정분류와 이어쓰기의 과제 적합성 관찰. 2026-10-11 열람 |
 | [fastText 한국어 단어 벡터](https://fasttext.cc/docs/en/crawl-vectors.html) (cc.ko.300) | 웹 문서로 미리 학습된 단어 벡터. CC BY-SA 3.0. 7주차 노트북이 앞부분만 내려받는다 |
