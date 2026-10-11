@@ -31,7 +31,7 @@ TODO를 건드리지 않아도 노트북은 처음부터 끝까지 돌아간다.
 | 8 | 문장 임베딩과 텍스트 유사도 | [Colab](https://colab.research.google.com/github/halla-ai/intronlp-2026/blob/main/notebooks/week-08.ipynb) |
 | 9 | 시퀀스 모델링과 트랜스포머의 등장 | [Colab](https://colab.research.google.com/github/halla-ai/intronlp-2026/blob/main/notebooks/week-09.ipynb) |
 | 10 | 사전학습 언어모델, BERT와 GPT | [Colab](https://colab.research.google.com/github/halla-ai/intronlp-2026/blob/main/notebooks/week-10.ipynb) |
-| 11 | 대규모 언어모델(LLM)의 시대, 특징과 활용 | 준비 중 |
+| 11 | 대규모 언어모델(LLM)의 시대, 특징과 활용 | [Colab](https://colab.research.google.com/github/halla-ai/intronlp-2026/blob/main/notebooks/week-11.ipynb) |
 | 12 | 사전학습 모델 활용법, 프롬프트 엔지니어링 | 없음 |
 | 13 | NLP 응용 사례 연구 및 최신 동향 | 없음 |
 | 14 | 언어모델과 사회, 윤리적 이슈와 책임 있는 AI | 준비 중 |
