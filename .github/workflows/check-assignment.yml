@@ -48,7 +48,7 @@ jobs:
 
           if [ "$fail" -ne 0 ]; then
             echo
-            echo "폴더 이름은 학번만 씁니다. 이름은 PR 제목에 적어주세요."
+            echo "폴더 이름과 PR 제목에는 학번만 쓰고 이름·연락처를 넣지 마세요."
             exit 1
           fi
           echo "OK. 제출 형식이 올바릅니다."

@@ -60,9 +60,11 @@ cells = [
         from matplotlib import font_manager
 
         try:
-            font_file, _ = urllib.request.urlretrieve(
-                "https://github.com/google/fonts/raw/main/ofl/nanumgothic/NanumGothic-Regular.ttf",
-                "NanumGothic-Regular.ttf")
+            font_file = "NanumGothic-Regular.ttf"
+            with urllib.request.urlopen(
+                "https://raw.githubusercontent.com/google/fonts/main/ofl/nanumgothic/NanumGothic-Regular.ttf", timeout=30) as response:
+                from pathlib import Path
+                Path(font_file).write_bytes(response.read())
             font_manager.fontManager.addfont(font_file)
             plt.rcParams["font.family"] = font_manager.FontProperties(fname=font_file).get_name()
             print("한글 글꼴 준비 끝")
@@ -158,7 +160,7 @@ cells = [
     md("""
         ### 1-4. 단어를 지도로 그리기
 
-        20칸짜리 벡터는 그대로 그릴 수 없습니다. 그래서 정보를 가장 많이 남기는 방향 두 개만 골라 2차원 지도로 줄입니다(주성분 분석). 가까이 찍힌 단어는 벡터도 비슷합니다.
+        20칸짜리 벡터는 그대로 그릴 수 없습니다. 그래서 정보를 가장 많이 남기는 방향 두 개만 골라 2차원 지도로 줄입니다(주성분 분석). 가까이 찍힌 단어는 이 두 방향에서 비슷합니다. 버린 방향의 차이가 가려질 수 있으므로 원래 20칸 벡터의 코사인 유사도도 함께 확인합니다.
 
         지도는 위아래나 좌우가 뒤집혀 나올 수 있습니다. 무리가 어떻게 모였는지만 보세요.
     """),
@@ -202,50 +204,77 @@ cells = [
     md("""
         ### 1-5. 큰 말뭉치로 미리 학습된 벡터 불러오기
 
-        직접 만든 말뭉치는 작고 틀에 박혀 있습니다. 이번에는 웹 문서로 미리 학습된 **공개 한국어 단어 벡터**(fastText cc.ko.300, 단어 200만 개, 300칸, CC BY-SA 3.0)를 씁니다. 전부 받으면 너무 크므로 **자주 나오는 단어 앞 10만 개**만 받고, 그 뒤에서는 아래 목록의 제주 단어만 골라 담습니다. 1분 안팎 걸립니다.
+        직접 만든 말뭉치는 작고 틀에 박혀 있습니다. 이번에는 웹 문서로 미리 학습된 **공개 한국어 단어 벡터**(fastText cc.ko.300, 단어 200만 개, 300칸, CC BY-SA 3.0)를 씁니다. 전부 받으면 너무 크므로 **자주 나오는 단어 앞 10만 개**만 받고, 그 뒤에서는 아래 목록의 제주 단어만 골라 담습니다. 네트워크에 따라 수 분 걸릴 수 있습니다. 3분 읽기 제한이나 연결 오류가 발생하면 상태를 기록하고 1-1~1-4의 직접 학습 결과로 관찰을 이어갑니다. 공개 벡터 관찰 성공과 구분합니다.
 
-        목록에 넣었는데도 벡터가 없다고 나오는 단어가 있습니다. 앞쪽 60만 단어 안에 한 번도 들지 못할 만큼 드물다는 뜻입니다.
+        목록에 넣었는데도 벡터가 없다고 나오는 단어가 있습니다. 이번에 읽은 앞쪽 60만 행에서 찾지 못했다는 뜻입니다. 표기·전처리·어휘 수록 범위도 확인해야 하며, 원래 말뭉치의 빈도나 원인을 이 결과만으로 확정하지 않습니다.
     """),
     code("""
         import gzip
+        import time
         import urllib.request
         import numpy as np
+        from gensim.models import KeyedVectors
 
         URL = "https://dl.fbaipublicfiles.com/fasttext/vectors-crawl/cc.ko.300.vec.gz"
         TOP, SCAN = 100_000, 600_000
         JEJU_WORDS = ["제주시", "서귀포시", "중문", "한림", "애월", "협재", "표선", "성산일출봉",
                       "올레길", "유채꽃", "돌하르방", "해녀", "흑돼지", "한라봉", "고기국수",
                       "갈치조림", "전복죽", "옥돔", "몸국", "하영", "지슬", "감저", "바당", "혼저"]
-
-        from gensim.models import KeyedVectors
-
-        names, rows = [], []
-        with urllib.request.urlopen(URL, timeout=60) as response, gzip.GzipFile(fileobj=response) as stream:
-            stream.readline()  # 첫 줄은 단어 수와 칸 수
-            for rank in range(1, SCAN + 1):
-                word, numbers = stream.readline().decode("utf-8", "replace").rstrip().split(" ", 1)
-                if rank <= TOP or word in JEJU_WORDS:
-                    names.append(word)
-                    rows.append(np.array(numbers.split(), dtype=np.float32))
-
-        ko = KeyedVectors(300)
-        ko.add_vectors(names, np.vstack(rows))
-        print("불러온 단어:", len(ko.index_to_key), "개")
-        print("벡터가 있는 제주 단어:", [w for w in JEJU_WORDS if w in ko.key_to_index])
-        print("벡터가 없는 제주 단어:", [w for w in JEJU_WORDS if w not in ko.key_to_index])
+        ko = None
+        pretrained_status = "unavailable"
+        try:
+            started = time.monotonic()
+            names, rows = [], []
+            with urllib.request.urlopen(URL, timeout=30) as response, gzip.GzipFile(fileobj=response) as stream:
+                count, dims = map(int, stream.readline().split())
+                if dims != 300 or count < SCAN:
+                    raise ValueError("벡터 파일의 크기 또는 차원이 예상과 다릅니다")
+                for rank in range(1, SCAN + 1):
+                    if time.monotonic() - started > 180:
+                        raise TimeoutError("공개 벡터 읽기 3분 제한 초과")
+                    line = stream.readline()
+                    if not line:
+                        raise EOFError("예상한 행을 모두 읽기 전에 파일이 끝났습니다")
+                    word, numbers = line.decode("utf-8").rstrip().split(" ", 1)
+                    if rank <= TOP or word in JEJU_WORDS:
+                        row = np.fromstring(numbers, sep=" ", dtype=np.float32)
+                        if len(row) != dims or not np.isfinite(row).all():
+                            raise ValueError("벡터 행 형식 확인 필요")
+                        names.append(word)
+                        rows.append(row)
+            ko = KeyedVectors(300)
+            ko.add_vectors(names, np.vstack(rows))
+            pretrained_status = "ok"
+            print("불러온 단어:", len(ko.index_to_key), "개")
+            print("벡터가 있는 제주 단어:", [w for w in JEJU_WORDS if w in ko.key_to_index])
+            print("읽은 범위에 없는 제주 단어:", [w for w in JEJU_WORDS if w not in ko.key_to_index])
+        except Exception as error:
+            ko = None
+            print("공개 벡터 unavailable:", type(error).__name__, str(error))
+            print("1-1~1-4의 직접 학습 결과는 유지. 공개 벡터 결과를 대신 만들지 않습니다.")
+        finally:
+            if 'rows' in globals():
+                del rows, names
+        print("공개 벡터 상태:", pretrained_status)
     """),
     md("""
         ### 1-6. 미리 학습된 벡터로 비슷한 단어 찾기
 
-        사람이 예상하는 이웃이 나오는 단어와, 엉뚱한 이웃이 나오는 단어가 섞여 있습니다. 엉뚱한 이웃은 **그 단어가 웹 문서에서 어떤 글에 쓰였는지**를 보여 줍니다.
+        사람이 예상하는 이웃이 나오는 단어와, 엉뚱한 이웃이 나오는 단어가 섞여 있습니다. 이웃은 저장된 벡터의 유사도 관찰입니다. 어떤 뜻이 학습 자료에서 많이 쓰였는지의 증거는 아니며, 아래는 원문 말뭉치에서 추가 확인할 가설입니다.
 
         - `하영` 은 제주어로 "많이"인데, 사람 이름으로도 많이 쓰입니다
         - `지슬` 은 제주어로 "감자"인데, 같은 제목의 영화가 있습니다
     """),
     code("""
-        for word in ["한라산", "감귤", "고기국수", "오름", "하영", "지슬"]:
-            top = [(w, round(float(s), 2)) for w, s in ko.most_similar(word, topn=5)]
-            print(f"{word}: {top}")
+        if ko is None:
+            print("공개 벡터 이웃 관찰 생략: unavailable")
+        else:
+            for word in ["한라산", "감귤", "고기국수", "오름", "하영", "지슬"]:
+                if word not in ko.key_to_index:
+                    print(word, ": 읽은 범위에 없음")
+                    continue
+                top = [(w, round(float(s), 2)) for w, s in ko.most_similar(word, topn=5)]
+                print(f"{word}: {top}")
     """),
     md("""
         ### 1-7. 단어로 계산하기
@@ -254,14 +283,21 @@ cells = [
     """),
     code("""
         def analogy(plus, minus):
-            top = ko.most_similar(positive=plus, negative=minus, topn=5)
-            print(f"{' + '.join(plus)} - {' - '.join(minus)} -> {[(w, round(float(s), 2)) for w, s in top]}")
+            if ko is None:
+                print("공개 벡터 유추 생략: unavailable")
+                return None
+            missing = [word for word in plus + minus if word not in ko.key_to_index]
+            if missing:
+                print("읽은 범위에 없는 단어:", missing)
+                return None
+            top = ko.most_similar(positive=plus, negative=minus, topn=50)
+            print(f"{' + '.join(plus)} - {' - '.join(minus)} -> {[(w, round(float(s), 2)) for w, s in top[:5]]}")
+            return [w for w, _ in top]
 
         analogy(["서울", "일본"], ["한국"])
-        analogy(["왕", "여자"], ["남자"])
-
-        ranked = [w for w, _ in ko.most_similar(positive=["왕", "여자"], negative=["남자"], topn=50)]
-        print("여왕의 순위:", ranked.index("여왕") + 1 if "여왕" in ranked else "50위 밖")
+        ranked = analogy(["왕", "여자"], ["남자"])
+        if ranked is not None:
+            print("여왕의 순위:", ranked.index("여왕") + 1 if "여왕" in ranked else "50위 밖")
     """),
     md("""
         ## 2. 한 지점만 바꿔 보기
@@ -278,17 +314,19 @@ cells = [
         query = "서귀포"
 
         # 아래는 그대로 둡니다
-        if query in ko.key_to_index:
+        if ko is None:
+            print("공개 벡터 검색 생략: unavailable. 직접 학습한 벡터의 관찰과 실패 기록을 제출합니다.")
+        elif query in ko.key_to_index:
             for rank, (w, s) in enumerate(ko.most_similar(query, topn=10), start=1):
                 print(f"{rank:2d}. {w}  {s:.2f}")
         else:
-            print(f"'{query}' 의 벡터가 없습니다. 웹 문서에 드물게 나왔거나 조사가 붙은 모양일 수 있습니다.")
+            print(f"'{query}' 의 벡터가 읽은 범위에 없습니다. 원래 말뭉치에서의 사용 빈도나 원인은 이 결과만으로 확정할 수 없습니다.")
     """),
     md("""
         ## 3. 확인 질문
 
         1. 1-3에서 `고기국수` 와 가장 비슷한 단어를 옮기고, 1-1의 틀 중 어느 것 때문에 그렇게 나왔는지 설명하세요.
-        2. 1-6에서 `하영` 또는 `지슬` 의 이웃을 옮기고, 왜 그런 이웃이 나왔는지 말뭉치의 특성으로 설명하세요.
+        2. 1-6에서 `하영` 또는 `지슬` 의 이웃을 옮기고, 어떤 뜻의 문맥일 수 있을지 가설을 적으세요. 원래 학습 자료를 확인하지 않았으므로 원인을 확정하지 마세요. 공개 벡터가 unavailable이면 오류와 건너뛴 항목을 기록하고 1-3의 직접 학습 결과를 대신 해석하세요.
         3. TODO 셀에 단어 세 개를 넣어 보고, 예상과 다른 결과 하나를 골라 이유를 추측해 보세요.
 
         답은 아래 셀에 글로 적으면 됩니다. 코드가 아니어도 됩니다.
