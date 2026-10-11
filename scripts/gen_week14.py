@@ -1,0 +1,249 @@
+#!/usr/bin/env python3
+"""Generate week 14's CPU-only notebook using Python's standard library."""
+from pathlib import Path
+from textwrap import dedent
+import json
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def md(text):
+    return {'cell_type': 'markdown', 'metadata': {}, 'source': dedent(text).strip()}
+
+
+def code(text):
+    return {'cell_type': 'code', 'metadata': {}, 'source': dedent(text).strip(),
+            'execution_count': None, 'outputs': []}
+
+
+cells = [
+    md('''
+        [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/halla-ai/intronlp-2026/blob/main/notebooks/week-14.ipynb)
+
+        # 14주차 실습: 제주어 대응쌍, 실제 출력과 책임 있는 판단
+
+        **목표.** 같은 질문에서 표준어와 제주어 낱말만 바꾸어 출력 차이를 관찰하고, 확인된 공개 대응 자료를 입력에 제공했을 때와 비교. 표본 세 쌍의 관찰이며 사회적 편향의 확정, 제주어 전체 성능 평가, 훈련 자료의 원인 분석과 구분.
+
+        기본값 그대로 끝까지 실행. CPU 두 스레드, 모델 한 개 로드, 최대 새 토큰 64개. 선택 활동은 `use_source` 한 곳만 변경. 모델 학습·GPU·개인정보·실제 기업 자료 사용 없음. 처음 실행에는 모델 다운로드 시간 필요.
+
+        공개 출처: 제주학연구센터 [제주어 길라잡이](https://archive.jst.re.kr/upload/pdf/RC00094038.pdf), 인쇄면 109쪽 '단어'의 단일어 설명. 열람 2026-10-11. 원문에서 **모살/모래, 바당/바다, 굴무기/느티나무** 대응만 짧게 추출. 문장·질문·자료 표기는 교수가 만든 수업용 가공. 구술 참여자의 이름·실제 발언·연락처, 승인 필요한 별도 말뭉치 사용 없음.
+
+        확인 범위: 공개 PDF의 색인 본문에 나온 해당 대응 단락 확인. 원본 PDF 서버 타임아웃으로 전체 문서 열람은 미확인. 위 URL과 열람일은 해당 색인 본문 확인의 기록.
+
+        이 대응은 출처의 해당 용례에 대한 확인 기준. 제주어의 지역별·문맥별 의미 전체를 대표하지 않음. 자료 제공은 현재 입력에 근거를 더하는 작업이며 모델 가중치 변경이나 편향 완전 해소의 증거 아님.
+    '''),
+    md('''
+        ## 0. 제공된 환경 준비
+
+        설치·다운로드 실패는 unavailable로 표시하고 끝까지 진행. 미실행을 가짜 답으로 채우지 않음. 같은 런타임의 중복 실행 금지. 설치가 실패했어도 마지막 기록 안내까지 도달하나, 실제 모델 실행 성공과 구분.
+    '''),
+    code('''
+        import os
+        import sys
+        import subprocess
+        import gc
+        import json
+        import time
+        os.environ["TOKENIZERS_PARALLELISM"] = "false"
+        os.environ["OMP_NUM_THREADS"] = "2"
+        os.environ["HF_HUB_ETAG_TIMEOUT"] = "20"
+        os.environ["HF_HUB_DOWNLOAD_TIMEOUT"] = "60"
+        setup_error = None
+        try:
+            subprocess.run([sys.executable, "-m", "pip", "install", "-q",
+                            "torch>=2.6,<3", "transformers>=4.51,<5",
+                            "safetensors>=0.4"], check=True, timeout=600)
+            import torch
+            import transformers
+            from transformers import AutoTokenizer, AutoModelForCausalLM
+            torch.set_num_threads(2)
+            print("device: cpu; threads: 2; dtype: float32")
+            print("torch:", torch.__version__, "transformers:", transformers.__version__)
+        except Exception as exc:
+            setup_error = f"{type(exc).__name__}: {exc}"
+            print("설치/불러오기 unavailable:", setup_error)
+    '''),
+    md('''
+        ## 1. 출처, 대응쌍, 같은 질문
+
+        표준어 조건은 대응어 자체를 입력하고, 제주어 조건은 해당 제주어 낱말 입력. 질문 형식은 같은 표준어 대응어 찾기. 지역 언어 전체의 문법·화용을 평가하는 실험 아님. 두 조건이 동일한 난이도라고 가정하지 않음.
+
+        참고 조건에는 세 대응을 모두 포함한 자료를 동일하게 제공. 정답을 포함한 문맥이므로 자료 없는 조건보다 맞을 경우 '자료 활용의 작은 사례'로 해석. 숨겨진 새 질문에 일반화한 성능 평가가 아님.
+    '''),
+    code('''
+        SOURCE_URL = "https://archive.jst.re.kr/upload/pdf/RC00094038.pdf"
+        SOURCE_DATE = "2026-10-11"
+        SOURCE_PAGE = "인쇄면 109쪽, 단일어 설명"
+        PAIRS = [
+            {"id": "sea", "standard": "바다", "jeju": "바당", "expected": "바다"},
+            {"id": "sand", "standard": "모래", "jeju": "모살", "expected": "모래"},
+            {"id": "tree", "standard": "느티나무", "jeju": "굴무기", "expected": "느티나무"},
+        ]
+        SOURCE = ("[J] 제주어 길라잡이 109쪽 대응 자료: "
+                  "바당 = 바다; 모살 = 모래; 굴무기 = 느티나무.")
+        RULE = "표준어 대응어 한 개만 적어 주세요. 모르면 확인 불가라고 적어 주세요."
+        def messages(word, with_source=False):
+            context = "참고 자료: " + SOURCE + "\\n" if with_source else ""
+            return [{"role": "user", "content": context +
+                     "질문: '" + word + "'의 표준어 대응어는 무엇인가요? " + RULE}]
+        CONDITIONS = {}
+        for pair in PAIRS:
+            for label, word, source in (
+                ("standard", pair["standard"], False),
+                ("jeju", pair["jeju"], False),
+                ("jeju_source", pair["jeju"], True),
+            ):
+                CONDITIONS[pair["id"] + "_" + label] = {
+                    "pair_id": pair["id"], "condition": label,
+                    "word": word, "expected": pair["expected"],
+                    "messages": messages(word, source), "source_provided": source,
+                }
+        print("출처:", SOURCE_URL, SOURCE_DATE, SOURCE_PAGE)
+        print("공개 대응 자료의 수업용 표기:", SOURCE)
+        print("질문 형식:", messages("바당")[0]["content"])
+        print("실행 조건:", list(CONDITIONS))
+    '''),
+    md('''
+        ## 2. 한 곳만 선택
+
+        True: 참고 자료가 있는 제주어 결과를 선택해 읽기. False: 참고 자료 없는 제주어 결과 읽기. 모두 같은 9개 조건을 실제 실행하므로 선택값은 검토할 결과만 바꿈. 변경 후 선택 셀과 마지막 정리 셀만 다시 실행. 모델 재실행 필요 없음.
+    '''),
+    code('''
+        # TODO: True/False 한 곳만 선택
+        use_source = True
+        if not isinstance(use_source, bool):
+            print("True/False 사용. 기본 True로 복구.")
+            use_source = True
+        print("검토할 제주어 조건:", "참고 자료 있음" if use_source else "참고 자료 없음")
+    '''),
+    md('''
+        ## 3. 모델 한 개로 9개 조건 실행
+
+        [Qwen/Qwen2.5-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct), Apache-2.0. 11주차와 동일한 파일 버전. CPU, float32, greedy, 최대 새 토큰 64개. 입력마다 독립된 대화 사용. 이전 답을 다음 질문의 예시로 넣지 않음.
+
+        raw는 실제 출력 그대로 보존. token_pieces는 입력 낱말만 별도로 분할한 참고 관찰. token_pieces는 라이브러리의 내부 표기로 한글처럼 보이지 않을 수 있으나 원문이 손상되었다는 뜻은 아님. 분할 조각 수가 많다는 사실은 성능·차별·사람의 능력 평가가 아님. response 시간이 다른 경우 CPU 상황도 영향. 반환 문자열이 길이 제한에 도달하면 truncated로 보존하고 완성 답처럼 채점하지 않음.
+    '''),
+    code('''
+        MODEL_ID = "Qwen/Qwen2.5-0.5B-Instruct"
+        MODEL_REVISION = "7ae557604adf67be50417f59c2c2f167def9a775"
+        MAX_NEW_TOKENS = 64
+        def run_conditions(conditions):
+            results = {}
+            tokenizer = model = None
+            if setup_error is not None:
+                return {label: {"status": "unavailable", "error": setup_error}
+                        for label in conditions}
+            try:
+                tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, revision=MODEL_REVISION)
+                model = AutoModelForCausalLM.from_pretrained(
+                    MODEL_ID, revision=MODEL_REVISION, torch_dtype=torch.float32,
+                    use_safetensors=True).to("cpu")
+                model.eval()
+                for label, condition in conditions.items():
+                    try:
+                        prompt = tokenizer.apply_chat_template(
+                            condition["messages"], tokenize=False, add_generation_prompt=True)
+                        inputs = tokenizer(prompt, return_tensors="pt")
+                        started = time.perf_counter()
+                        with torch.inference_mode():
+                            generated = model.generate(
+                                **inputs, max_new_tokens=MAX_NEW_TOKENS,
+                                do_sample=False, pad_token_id=tokenizer.eos_token_id)
+                        new_ids = generated[0, inputs["input_ids"].shape[1]:]
+                        raw = tokenizer.decode(new_ids, skip_special_tokens=True)
+                        eos_ids = model.generation_config.eos_token_id
+                        eos_ids = [eos_ids] if isinstance(eos_ids, int) else (eos_ids or [])
+                        completed = bool(len(new_ids) and int(new_ids[-1]) in eos_ids)
+                        truncated = len(new_ids) >= MAX_NEW_TOKENS and not completed
+                        word_ids = tokenizer.encode(condition["word"], add_special_tokens=False)
+                        results[label] = {
+                            "status": "truncated" if truncated else "ok", "raw": raw,
+                            "pair_id": condition["pair_id"], "condition": condition["condition"],
+                            "input_word": condition["word"], "expected": condition["expected"],
+                            "source_provided": condition["source_provided"],
+                            "input_tokens": int(inputs["input_ids"].shape[1]),
+                            "new_tokens": len(new_ids), "word_tokens": len(word_ids),
+                            "token_pieces": tokenizer.convert_ids_to_tokens(word_ids),
+                            "elapsed_seconds": round(time.perf_counter() - started, 3),
+                            "exact_text_match": raw.strip() == condition["expected"],
+                            "expected_text_present": condition["expected"] in raw,
+                        }
+                        print(label, json.dumps(results[label], ensure_ascii=False))
+                    except Exception as exc:
+                        results[label] = {"status": "unavailable", "error":
+                                          f"{type(exc).__name__}: {exc}"}
+                        print(label, results[label])
+            except Exception as exc:
+                error = f"{type(exc).__name__}: {exc}"
+                results = {label: {"status": "unavailable", "error": error}
+                           for label in conditions}
+                print("모델 불러오기 unavailable:", error)
+            finally:
+                del model, tokenizer
+                gc.collect()
+            return results
+        results = run_conditions(CONDITIONS)
+        experiment_metadata = {
+            "model": MODEL_ID, "revision": MODEL_REVISION, "device": "cpu",
+            "dtype": "float32", "threads": 2, "max_new_tokens": MAX_NEW_TOKENS,
+            "do_sample": False, "source_url": SOURCE_URL,
+            "source_date": SOURCE_DATE, "source_page": SOURCE_PAGE,
+            "scope": "공개 대응 3쌍, 질문은 교수 작성, 9조건, 모델 학습 없음",
+            "torch": torch.__version__ if setup_error is None else None,
+            "transformers": transformers.__version__ if setup_error is None else None,
+        }
+        print("실험 설정:", json.dumps(experiment_metadata, ensure_ascii=False))
+    '''),
+    md('''
+        ## 4. 자동 문자 플래그와 사람의 확인 구분
+
+        `exact_text_match`는 출력 문자열과 기대 대응어의 완전일치만, `expected_text_present`는 출력 안에 기대 대응어 문자열이 존재하는지만 확인. 공정성이나 의미 정확성의 점수 아님. 대응어를 부정하는 문장에도 그 단어가 포함될 수 있는 한계. 맞는 대응어 뒤에 잘못된 정보를 덧붙이는 출력도 따로 확인.
+
+        사람의 확인 순서: (1)공개 대응과 일치, (2)근거 없는 추가 주장, (3)대응어 한 개라는 지시의 형식, (4)출력 완료, (5)활용 시의 영향. 오류가 없는 행도 이 낱말·이 조건에서 불일치 없음으로 범위 한정. 사회적 편향은 지역·문맥·사용자를 넓힌 추가 확인이 필요한 판단.
+    '''),
+    code('''
+        selected = "jeju_source" if use_source else "jeju"
+        for pair in PAIRS:
+            print("\\n대조:", pair["id"], "기대 대응:", pair["expected"])
+            for condition in ("standard", selected):
+                label = pair["id"] + "_" + condition
+                result = results[label]
+                print(label, "상태:", result["status"], "실제 답:", result.get("raw"))
+                print("문자열 완전일치:", result.get("exact_text_match"),
+                      "대응어 문자열 존재:", result.get("expected_text_present"))
+                if result["status"] != "ok":
+                    print("완료된 의미 평가가 아닌 상태. 오류 또는 중간 출력을 보존.")
+            print("사람 확인란: 대응어/추가 주장/형식/완료/활용 시 영향 기록")
+        print("\\n기록용 JSON:")
+        print(json.dumps({"metadata": experiment_metadata, "results": results},
+                         ensure_ascii=False, indent=2))
+    '''),
+    md('''
+        ## 5. 기록과 Q3 가치 충돌 토론
+
+        | 기록 항목 | 기록 내용 |
+        |---|---|
+        | 조건과 실제 출력 | 조건 이름, raw, ok/truncated/unavailable. 좋지 않은 행도 보존 |
+        | 원문 대조 | 대응어 일치 여부, 출처의 짧은 대응 부분, 추가 주장의 확인 가능 여부 |
+        | 오류 유형 | 대응 불일치, 다른 뜻, 근거 없는 추가, 형식 불이행, 중간 종료 등 |
+        | 현재 증거 | 이 3쌍·모델·질문·생성 설정에서 실제로 관찰한 것 |
+        | 판단 불가 | 전 지역의 성능, 사회적 차별의 유무, 학습 자료의 양과 오류 원인 |
+        | 활용 제안 | 원문과 사람 확인 후 안내, 확인 불가능하면 보류·담당자 연결 |
+
+        **확인 질문 세 가지.**
+
+        1. 한 대응쌍의 표준어·제주어·자료 있는 제주어 실제 출력에서 달라진 것은 무엇인가? 원문 대응, 추가 주장, 형식, 완료 상태를 구분하고 자동 플래그만으로 판단할 수 없는 이유 기록.
+        2. 세 쌍에 불일치가 없어도 모델 전체에 편향이 없다고 말할 수 있는가? 자료 제공 후 맞혔다는 사실에서 원래 지식·학습 자료·내부 원인 중 무엇을 확인할 수 없는지 설명.
+        3. 즉시 자동 안내와 사람 검토를 기다리는 안내의 이득·부담은 각각 무엇인가? 지역 표현의 재질문 부담, 틀린 안내의 영향, 검토자의 책임을 고려해 허용·검토·보류 조건 제안.
+
+        **설명과 원인.** 이유를 쓰도록 요청해도 그 이유는 생성된 문자열. 내부 계산의 실제 원인을 확인한 증거와 구분. 11주차의 추론형 모델 관찰과 연결하며, 이번에는 길이가 긴 추론 생성을 추가로 실행하지 않음.
+
+        제출: 실제 출력을 저장한 노트북, 대표 오류/확인 사항 1건, 공개 근거, 판단 보류 사항, Q3 절충안, 위 질문 세 가지의 답. `assignments/week-14/<학번>/`에 학번만 사용. unavailable이면 오류와 미완료 단계 기록 후 실제 결과가 없음을 명시. 불일치가 없으면 그 상태를 기록하고 가상의 오류를 만들지 않음. 개인 발언·이름·연락처, 내부 데이터를 입력하거나 커밋하지 않음.
+    '''),
+]
+notebook = {'cells': cells, 'metadata': {'kernelspec': {'display_name': 'Python 3',
+              'language': 'python', 'name': 'python3'}, 'language_info': {'name': 'python'}},
+            'nbformat': 4, 'nbformat_minor': 0}
+if __name__ == '__main__':
+    (ROOT / 'notebooks/week-14.ipynb').write_text(
+        json.dumps(notebook, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
