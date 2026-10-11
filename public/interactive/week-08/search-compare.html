@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>같은 질문, 세 가지 검색</title>
+<style>
+@font-face{font-family:'Pretendard';src:url('/fonts/PretendardVariable.woff2') format('woff2');font-weight:100 900;font-display:swap}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:'Pretendard',-apple-system,'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);padding:12px 16px;overflow:hidden;font-size:13.5px;line-height:1.5}
+body.light{--bg:#ffffff;--card:#f6f8fa;--text:#1f2328;--muted:#57606a;--border:#d0d7de;--a:#2563eb;--a-soft:rgba(37,99,235,.10);--w:#b45309;--w-soft:rgba(180,83,9,.10);--pos:#16a34a;--pos-soft:rgba(22,163,74,.12);--neg:#dc2626;--neg-soft:rgba(220,38,38,.10)}
+body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2c2c2c;--a:#22d3ee;--a-soft:rgba(34,211,238,.12);--w:#fbbf24;--w-soft:rgba(251,191,36,.12);--pos:#4ade80;--pos-soft:rgba(74,222,128,.14);--neg:#f87171;--neg-soft:rgba(248,113,113,.13)}
+.cap{font-size:12px;color:var(--muted);margin:0 0 8px}
+.note{margin:8px 0 0;padding:8px 10px;border:1px dashed var(--border);border-radius:10px;font-size:12.5px;color:var(--muted)}
+.note b{color:var(--text)}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:999px;overflow:hidden;margin-bottom:10px}
+.seg button{font:inherit;font-size:12.5px;padding:4px 14px;border:0;background:transparent;color:var(--muted);cursor:pointer}
+.seg button.on{background:var(--a-soft);color:var(--a);font-weight:600}
+.chip{font:inherit;font-size:13px;padding:3px 10px;border:1px solid var(--border);border-radius:999px;background:var(--card);color:var(--text);cursor:pointer}
+.chip.on{border-color:var(--a);background:var(--a-soft);color:var(--a);font-weight:600}
+.qs{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+@media (max-width:560px){.cols{grid-template-columns:1fr}}
+.col{border:1px solid var(--border);border-radius:10px;background:var(--card);padding:8px 10px}
+.col h4{margin:0 0 6px;font-size:12.5px;display:flex;justify-content:space-between}
+.col h4 .v{font-size:11.5px;border-radius:999px;padding:0 8px}
+.v.ok{background:var(--pos-soft);color:var(--pos)}.v.no{background:var(--neg-soft);color:var(--neg)}
+.hit{font-size:12.5px;padding:3px 0;border-bottom:1px solid var(--border);display:flex;gap:6px}
+.hit:last-child{border-bottom:none}
+.hit .n{min-width:30px;color:var(--muted)}
+.hit .t{flex:1}
+.hit.exp .t{color:var(--pos);font-weight:600}
+.hit .s{color:var(--muted)}
+.score{font-size:12.5px;color:var(--muted);margin:8px 0 0}
+.score b{color:var(--text)}
+</style>
+</head>
+<body class="dark">
+<script>
+(function(){var t=matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.body.classList.remove('dark');document.body.classList.add(t);})();
+</script>
+<p class="cap">질문을 골라 보세요. 세 방법이 고른 상위 3개 문서다. 초록 글씨가 사람이 고른 정답 문서다(노트북 1-1의 문서 12개)</p>
+<div class="qs" id="qs"></div>
+<div class="cols" id="cols"></div>
+<p class="score" id="score"></p>
+<p class="note" id="note"></p>
+<script>
+var fromParent=false;
+addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});
+try{matchMedia('(prefers-color-scheme: light)').addEventListener('change',function(ev){if(!fromParent){document.body.classList.remove('light','dark');document.body.classList.add(ev.matches?'light':'dark');}});}catch(_){}
+parent.postMessage({type:'figure-ready'},'*');
+var DOCS=["제주국제공항에서 제주시내까지는 리무진 버스나 시내버스를 타면 된다", "성산일출봉은 해가 뜨기 전에 올라가면 정상에서 일출을 볼 수 있다", "우도에 가려면 성산포항에서 배를 타고 들어가야 한다", "한라산 일부 탐방로는 미리 탐방 예약을 해야 오를 수 있다", "비가 오는 날에는 실내 관광지나 박물관을 둘러보기 좋다", "제주 올레길은 여러 코스로 나뉘어 해안을 따라 걸을 수 있다", "고기국수는 돼지고기 수육을 얹은 제주의 국수 요리다", "렌터카가 없어도 버스로 주요 관광지를 다닐 수 있다", "감귤 따기 체험은 주로 겨울철 농장에서 열린다", "협재 해수욕장은 물이 맑고 얕아 아이와 함께 가기 좋다", "해녀박물관에서는 제주 해녀의 물질 문화를 배울 수 있다", "제주시 숙소는 공항과 가까워 이동이 편하다"],S={"우도 가는 배": {"word": [[12, 0.0], [11, 0.0], [10, 0.0]], "char": [[3, 0.27], [8, 0.07], [11, 0.07]], "emb": [[3, 0.75], [6, 0.63], [10, 0.61]]}, "공항에서 시내까지 어떻게 가나요": {"word": [[12, 0.0], [11, 0.0], [10, 0.0]], "char": [[1, 0.41], [12, 0.14], [3, 0.13]], "emb": [[12, 0.74], [1, 0.73], [8, 0.47]]}, "제주시로 가는 교통편": {"word": [[12, 0.0], [11, 0.0], [10, 0.0]], "char": [[12, 0.29], [1, 0.26], [6, 0.12]], "emb": [[12, 0.84], [1, 0.8], [6, 0.75]]}, "비 올 때 갈 만한 곳": {"word": [[12, 0.0], [11, 0.0], [10, 0.0]], "char": [[5, 0.11], [6, 0.08], [2, 0.08]], "emb": [[5, 0.87], [3, 0.81], [6, 0.76]]}, "아이랑 놀기 좋은 바다": {"word": [[12, 0.0], [11, 0.0], [10, 0.0]], "char": [[10, 0.31], [5, 0.08], [9, 0.06]], "emb": [[10, 0.82], [6, 0.67], [3, 0.66]]}, "제주 전통 음식": {"word": [[11, 0.34], [6, 0.29], [12, 0.0]], "char": [[11, 0.2], [6, 0.2], [1, 0.15]], "emb": [[7, 0.77], [11, 0.65], [6, 0.55]]}},E={"우도 가는 배": 3, "공항에서 시내까지 어떻게 가나요": 1, "제주시로 가는 교통편": 1, "비 올 때 갈 만한 곳": 5, "아이랑 놀기 좋은 바다": 10, "제주 전통 음식": 7};
+var NAMES={word:'단어 TF-IDF',char:'글자 조각 TF-IDF',emb:'문장 임베딩'};
+var NOTE={
+ '우도 가는 배':'문서에는 <b>우도에, 배를</b>처럼 조사가 붙어 있어 띄어쓰기 단위로는 겹치는 단어가 하나도 없다. 글자 조각과 문장 임베딩은 3번 문서를 찾는다',
+ '공항에서 시내까지 어떻게 가나요':'글자 조각은 공항, 시내 조각이 겹쳐 1번을 찾는다. 문장 임베딩은 <b>공항과 가까운 숙소</b>를 말하는 12번을 0.74로 1위에 두고, 정답 1번은 0.73으로 아깝게 2위다',
+ '제주시로 가는 교통편':'세 방법 모두 정답을 1위로 올리지 못했다. 제주시라는 말이 나오는 12번이 앞선다. 글자 조각과 임베딩 모두 정답 1번이 2위다',
+ '비 올 때 갈 만한 곳':'질문과 문서가 낱말을 거의 나누지 않는다(비 올 때 / 비가 오는 날에는). 글자 조각은 0.11로 겨우 맞혔고, 문장 임베딩은 0.87로 뚜렷하게 맞혔다',
+ '아이랑 놀기 좋은 바다':'아이랑과 아이와처럼 조사가 달라도 글자 조각은 겹친다. 문장 임베딩은 바다와 해수욕장처럼 낱말이 달라도 가깝게 본다',
+ '제주 전통 음식':'단어와 글자 조각은 <b>제주</b>라는 말이 겹치는 11번(해녀박물관)을 고른다. 문장 임베딩만 고기국수를 설명한 7번을 찾는다'};
+var cur='우도 가는 배';
+function render(){
+ document.querySelectorAll('#qs .chip').forEach(function(b){b.classList.toggle('on',b.dataset.q===cur);b.setAttribute('aria-pressed',b.dataset.q===cur)});
+ var r=S[cur],e=E[cur],h='';
+ ['word','char','emb'].forEach(function(m){
+  var top=r[m],ok=top[0][1]>0&&top[0][0]===e;
+  h+='<div class="col"><h4>'+NAMES[m]+'<span class="v '+(ok?'ok':'no')+'">'+(ok?'정답':'오답')+'</span></h4>';
+  if(top[0][1]===0){h+='<div class="hit"><span class="t">모든 문서가 0점: 찾지 못함</span></div>'}
+  else top.filter(function(t){return t[1]>0}).forEach(function(t){h+='<div class="hit'+(t[0]===e?' exp':'')+'"><span class="n">'+t[0]+'번</span><span class="t">'+DOCS[t[0]-1]+'</span><span class="s">'+t[1].toFixed(2)+'</span></div>'});
+  h+='</div>';
+ });
+ document.getElementById('cols').innerHTML=h;
+ var tally={word:0,char:0,emb:0};Object.keys(S).forEach(function(q){['word','char','emb'].forEach(function(m){var t=S[q][m][0];if(t[1]>0&&t[0]===E[q])tally[m]++})});
+ document.getElementById('score').innerHTML='질문 6개 전체 정답 수: 단어 TF-IDF <b>'+tally.word+'</b> · 글자 조각 <b>'+tally.char+'</b> · 문장 임베딩 <b>'+tally.emb+'</b>';
+ document.getElementById('note').innerHTML=NOTE[cur];
+}
+Object.keys(S).forEach(function(q){var b=document.createElement('button');b.type='button';b.className='chip';b.textContent=q;b.dataset.q=q;b.onclick=function(){cur=q;render()};document.getElementById('qs').appendChild(b)});
+render();
+</script>
+</body>
+</html>

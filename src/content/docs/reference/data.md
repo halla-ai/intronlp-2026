@@ -11,10 +11,24 @@ description: 실습에 쓰는 공개 데이터
 | [제주데이터허브](https://www.jejudatahub.net) | 제주 민간 개방 포털 |
 | [제주 관광 빅데이터 서비스 플랫폼](https://data.ijto.or.kr) | 관광 분야 특화 |
 | [공공데이터포털](https://www.data.go.kr) | 제주 행정정보 |
+| [제주학연구센터 제주어 길라잡이](https://archive.jst.re.kr/upload/pdf/RC00094038.pdf) | 14주차 공개 어휘 대응 3쌍. 인쇄면 109쪽의 모살/모래, 바당/바다, 굴무기/느티나무. 2026-10-11 색인 본문의 해당 단락 확인, 원본 URL 직접 접속 시도가 타임아웃되어 전체 문서 열람은 미확인 |
+| [제주관광공사 VisitJeju 한라산 안내](https://www.visitjeju.net/en/detail/view?contentsid=CONT_000000000500685) | 9주차 영어 안내문의 짧은 발췌. 페이지 제목을 붙이고 한 토큰을 가려 문맥 관찰. 2026-10-11 열람 |
+| [제주관광공사 VisitJeju 올레 6코스 안내](https://m.visitjeju.net/en/detail/view?contentsid=CNTS_000000000020298) | 10주차 영어 안내문의 첫 절 발췌. 감정분류와 이어쓰기의 과제 적합성 관찰. 2026-10-11 열람 |
+| [fastText 한국어 단어 벡터](https://fasttext.cc/docs/en/crawl-vectors.html) (cc.ko.300) | 웹 문서로 미리 학습된 단어 벡터. CC BY-SA 3.0. 7주차 노트북이 앞부분만 내려받는다 |
+| [paraphrase-multilingual-MiniLM-L12-v2](https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2) | 문장을 384칸 벡터로 바꾸는 미리 학습된 다국어 모델. Apache-2.0. 8주차 노트북이 내려받는다 |
+| [bert-tiny](https://huggingface.co/prajjwal1/bert-tiny) | 작은 영어 BERT 사전학습 모델. MIT. 9주차의 어텐션 관찰과 빈칸 채우기용 |
+| [DistilBERT SST-2](https://huggingface.co/distilbert/distilbert-base-uncased-finetuned-sst-2-english) | 영어 감정분류에 맞게 추가 학습된 모델. Apache-2.0. 10주차의 긍정·부정 분류용 |
+| [DistilGPT2](https://huggingface.co/distilbert/distilgpt2) | 작은 영어 GPT-2 계열 사전학습 모델. Apache-2.0. 10주차의 짧은 이어쓰기용 |
+| [Qwen2.5-0.5B-Instruct](https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct) | 작은 공개 지시 모델. Apache-2.0. 11주차의 zero-shot·few-shot 비교용 |
+| [Qwen3-0.6B](https://huggingface.co/Qwen/Qwen3-0.6B) | 작은 공개 추론 지원 모델. Apache-2.0. 11주차의 동일 질문에 대한 일반 모델·추론형 모델 비교용 |
 
 ## 알아둘 것
 
 - 제주도의 행정 내부망 빅데이터 플랫폼은 학생이 접근할 수 없다. 위 개방 포털만 쓴다
 - **도내 기업의 데이터는 쓰지 않는다.** 수업에서 기업이 등장할 때는 "이런 조건을 가진 조직"이라는 상정일 뿐이며, 기업이 데이터를 제공하지 않는다
 - 데이터 원본은 이 저장소에 담지 않는다. 라이선스와 용량 때문이다
+- 9-10주차의 기본 모델 입력은 위 공식 공개 안내문의 짧은 발췌를 사용한다. 빈칸 치환·제목 추가와 절 단위 발췌를 명시하며, 원문 복원이 곧 사실 검증이라는 뜻은 아니다
+- 11-12주차도 같은 공식 발췌를 사용한다. 2026-10-11 열람한 올레 6코스 페이지의 상단 설명은 13.3km, 상세 본문은 11km로 표기가 다르다. 실습은 제공한 상세 본문 발췌에 대한 답을 확인하며 실제 최신 코스 길이를 확정하지 않는다. 원문 간 불일치는 추가 확인 전 판단 보류
+- 구조 설명용 문장과 긍정·부정 표현의 통제 예시는 수업용 보조 자료다. 실제 관광객 후기·기업 데이터가 아니다. 작은 영어 모델의 구조·사용법을 관찰하며 한국어 제주 서비스의 성능을 평가하지 않는다
+- 14주차는 공개 어휘 대응만 짧게 가져오며 질문·비교 조건은 수업용으로 작성한다. 세 대응쌍의 결과나 토큰 분할만으로 제주어 전체의 성능, 사회적 차별, 학습 말뭉치의 원인을 확정하지 않는다. 구술 참여자의 개인 발언·이름·연락처와 승인 대상 말뭉치는 포함하지 않는다
 - **AI Hub 자료는 각자 이용 승인을 받아야 한다.** 승인에 시간이 걸리므로 되도록 일찍, 늦어도 쓰는 주차가 되기 전에 신청한다. 음성 파일은 받지 않고 방언·표준어 텍스트 대응쌍만 내려받는다. 받은 자료는 공개 저장소나 수업 플랫폼에 올리지 않고 각자의 Colab 세션에만 둔다. 승인이 늦어지면 노트북에 들어 있는 설명용 표본으로 먼저 실습한다

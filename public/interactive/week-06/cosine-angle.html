@@ -95,10 +95,11 @@ function draw(){
   var ex=X(x),ey=Y(y);
   var ang=Math.atan2(Y(0)-ey,ex-X(0));
   var L=10;
-  var hx=ex+L*Math.cos(ang),hy=ey-L*Math.sin(ang);
-  var hx2=ex+L*Math.cos(ang-0.5),hy2=ey-L*Math.sin(ang-0.5);
-  var hx3=ex+L*Math.cos(ang+0.5),hy3=ey-L*Math.sin(ang+0.5);
-  return '<line x1="'+X(0)+'" y1="'+Y(0)+'" x2="'+ex+'" y2="'+ey+'" stroke="'+color+'" stroke-width="2.5"/>'+
+  // head corners sit behind the tip; the shaft stops inside the head so the stroke does not poke past it
+  var hx=ex-0.8*L*Math.cos(ang),hy=ey+0.8*L*Math.sin(ang);
+  var hx2=ex-L*Math.cos(ang-0.5),hy2=ey+L*Math.sin(ang-0.5);
+  var hx3=ex-L*Math.cos(ang+0.5),hy3=ey+L*Math.sin(ang+0.5);
+  return '<line x1="'+X(0)+'" y1="'+Y(0)+'" x2="'+hx+'" y2="'+hy+'" stroke="'+color+'" stroke-width="2.5"/>'+
    '<polygon points="'+ex+','+ey+' '+hx2+','+hy2+' '+hx3+','+hy3+'" fill="'+color+'"/>'+
    '<text x="'+(ex+(x>=0?8:-8))+'" y="'+(ey+(y>=0?-6:12))+'" fill="'+color+'" font-size="11" font-family="Pretendard" text-anchor="'+(x>=0?'start':'end')+'">'+label+'</text>';
  };
