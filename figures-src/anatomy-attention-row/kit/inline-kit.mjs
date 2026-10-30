@@ -8,6 +8,8 @@ import { fileURLToPath } from "node:url";
 const KIT = dirname(fileURLToPath(import.meta.url));
 const strip = (file) => readFileSync(join(KIT, file), "utf8").replace(/^export /gm, "");
 
+// The MIT notice travels with the inlined kit code into the published page.
 export function kitScript() {
-  return strip("iso-kit.mjs");
+  const notice = readFileSync(join(KIT, "LICENSE"), "utf8").trim();
+  return `/*! anatomy iso-kit, ${notice} */\n` + strip("iso-kit.mjs");
 }
