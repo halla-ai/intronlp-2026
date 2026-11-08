@@ -152,15 +152,18 @@ cells = [
     md("""
         ### 1-5. 고치기 2: 문장 임베딩 모델
 
-        문장 임베딩 모델은 **문장 전체를 벡터 하나로** 바꿉니다. 같은 뜻의 문장쌍을 가깝게 두도록 미리 학습된 공개 다국어 모델(paraphrase-multilingual-MiniLM-L12-v2, Apache-2.0)을 내려받아 씁니다. 처음에는 내려받느라 1분 안팎 걸립니다.
+        문장 임베딩 모델은 **문장 전체를 벡터 하나로** 바꿉니다. 같은 뜻의 문장쌍을 가깝게 두도록 미리 학습된 공개 다국어 모델(paraphrase-multilingual-MiniLM-L12-v2, Apache-2.0)을 내려받아 씁니다. 모델 revision을 고정하고 CPU 두 스레드로 실행합니다. 처음에는 다운로드에 수 분 걸릴 수 있으며 네트워크에 따라 시간이 달라집니다.
 
         내려받기에 실패하면 이 모델을 쓰는 결과만 건너뛰고 나머지는 그대로 돌아갑니다.
     """),
     code("""
         MODEL_NAME = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+        MODEL_REVISION = "e8f8c211226b894fcb81acc59f3b34ba3efd5f42"
         try:
+            import torch
+            torch.set_num_threads(2)
             from sentence_transformers import SentenceTransformer
-            model = SentenceTransformer(MODEL_NAME, device="cpu")
+            model = SentenceTransformer(MODEL_NAME, revision=MODEL_REVISION, device="cpu")
             doc_embeddings = model.encode(docs, normalize_embeddings=True)
             print("문장 임베딩:", doc_embeddings.shape[0], "개 x 칸", doc_embeddings.shape[1], "개")
         except Exception as e:
@@ -242,7 +245,7 @@ cells = [
         ## 3. 확인 질문
 
         1. 1-3에서 `우도 가는 배` 의 점수가 모두 0이 된 이유를 띄어쓰기 단위와 조사로 설명하세요.
-        2. 1-6 표에서 문장 임베딩이 틀린 질문 하나를 고르고, 1위로 고른 문서가 왜 비슷하다고 판단되었을지 추측해 보세요.
+        2. 1-6 표에서 문장 임베딩의 1위가 질문 목적에 맞는지 확인하세요. 맞지 않는 결과가 있으면 이유를 추측하고, 없으면 맞는 사례와 추가로 점검할 질문을 적으세요. 모델 불러오기에 실패했다면 오류와 생략된 비교를 기록하고 두 TF-IDF 결과만 비교하세요.
         3. TODO 셀에 같은 뜻 다른 표현 문장쌍 세 개를 넣고 세 점수를 옮기세요. 단어 단위 유사도와 문장 단위 유사도가 가장 크게 갈린 쌍은 무엇인가요?
 
         답은 아래 셀에 글로 적으면 됩니다. 코드가 아니어도 됩니다.

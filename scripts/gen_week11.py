@@ -143,7 +143,9 @@ cells = [
                         raw = tokenizer.decode(ids, skip_special_tokens=True)
                         end_id = tokenizer.convert_tokens_to_ids("</think>") if thinking else None
                         has_end = thinking and end_id is not None and end_id in ids
-                        ended = bool(ids and ids[-1] == tokenizer.eos_token_id)
+                        eos_ids = model.generation_config.eos_token_id
+                        eos_ids = [eos_ids] if isinstance(eos_ids, int) else (eos_ids or [])
+                        ended = bool(ids and ids[-1] in eos_ids)
                         limited = len(ids) >= budget and not ended
                         if thinking and has_end:
                             split = ids.index(end_id)

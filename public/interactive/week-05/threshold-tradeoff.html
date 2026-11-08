@@ -48,7 +48,7 @@ body.dark{--bg:#080808;--card:#141414;--text:#ededed;--muted:#9ca3af;--border:#2
 </div>
 <div class="track" id="track" aria-label="긍정 확률 0에서 1까지"><div class="linelabel" id="linelabel">문턱</div><div class="line" id="line"></div></div>
 <div class="tally" id="tally"></div>
-<p class="note">문턱을 올리면 긍정 판정이 줄어 <b>놓친 긍정</b>이 늘고, 내리면 <b>잘못 올린 부정</b>이 는다</p>
+<p class="note">문턱을 넘는 사례가 있을 때 판정 변화. 올리면 <b>놓친 긍정</b>이 늘거나 유지되고, 내리면 <b>잘못 올린 부정</b>이 늘거나 유지</p>
 <script>
 var fromParent=false;
 addEventListener('message',function(e){if(e.data&&e.data.type==='starlight-theme'){fromParent=true;document.body.classList.remove('light','dark');document.body.classList.add(e.data.theme==='light'?'light':'dark');}});

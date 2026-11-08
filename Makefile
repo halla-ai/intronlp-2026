@@ -1,4 +1,4 @@
-.PHONY: help install install-dev dev build preview check clean clean-all new-week new-notebook status
+.PHONY: help install install-dev dev build preview check check-course clean clean-all new-week new-notebook status
 .DEFAULT_GOAL := help
 
 CONTENT_DIR := src/content/docs
@@ -24,6 +24,9 @@ preview: build ## Build then preview
 
 check: ## Type-check the project
 	pnpm exec astro check
+
+check-course: ## Validate all lessons, notebooks, generators and local resource paths
+	python3 scripts/check_course.py
 
 clean: ## Remove build artifacts
 	rm -rf .astro dist
